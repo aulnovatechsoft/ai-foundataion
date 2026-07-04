@@ -1,0 +1,1851 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: account
+    description: Current user account and profile
+  - name: curriculum
+    description: 28-day curriculum content
+  - name: progress
+    description: Learning progress and gamification
+  - name: achievements
+    description: Badges and achievements
+  - name: leaderboard
+    description: Weekly XP leaderboard
+  - name: community
+    description: Community feed and public profiles
+  - name: certificates
+    description: Earned certificates
+  - name: projects
+    description: User projects
+  - name: prompts
+    description: Saved prompt library
+  - name: openai
+    description: OpenAI AI chat operations
+  - name: ai
+    description: AI utility operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [account]
+      summary: Get the current user's profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      operationId: updateMe
+      tags: [account]
+      summary: Update the current user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+
+  /onboarding/preview:
+    post:
+      operationId: previewOnboarding
+      tags: [onboarding]
+      summary: Compute a personalized program from quiz answers (anonymous, no auth)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingInput"
+      responses:
+        "200":
+          description: Personalized program preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingProgram"
+  /onboarding:
+    post:
+      operationId: saveOnboarding
+      tags: [onboarding]
+      summary: Persist quiz answers to the signed-in user and return their program
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingInput"
+      responses:
+        "200":
+          description: Saved user with personalized program
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /payments/order:
+    post:
+      operationId: createPaymentOrder
+      tags: [payments]
+      summary: Create a Razorpay order to unlock Days 2-28
+      responses:
+        "200":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentOrder"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Payments not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /payments/verify:
+    post:
+      operationId: verifyPayment
+      tags: [payments]
+      summary: Verify a Razorpay payment signature and unlock full access
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentVerifyInput"
+      responses:
+        "200":
+          description: Payment verified; user unlocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "400":
+          description: Invalid signature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /payments/webhook:
+    post:
+      operationId: paymentsWebhook
+      tags: [payments]
+      summary: Razorpay server-to-server webhook (HMAC-verified, no client auth)
+      description: >-
+        Called by Razorpay, not by the client. The raw request body (an arbitrary
+        Razorpay event payload) is verified against RAZORPAY_WEBHOOK_SECRET before
+        any entitlement change. Documented for contract completeness; there is no
+        generated client or typed body for this route.
+      responses:
+        "200":
+          description: Webhook acknowledged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                required: [received]
+        "400":
+          description: Invalid or missing signature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /curriculum:
+    get:
+      operationId: listCurriculumDays
+      tags: [curriculum]
+      summary: List all 28 curriculum days
+      responses:
+        "200":
+          description: Curriculum days
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CurriculumDaySummary"
+  /curriculum/{day}:
+    get:
+      operationId: getCurriculumDay
+      tags: [curriculum]
+      summary: Get a single curriculum day with its quiz
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Curriculum day detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurriculumDayDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /curriculum/{day}/audio:
+    post:
+      operationId: generateDayAudio
+      tags: [curriculum]
+      summary: Generate (or fetch cached) audio deep-dive for a day
+      description: Generates a TTS audio deep-dive once per day and caches it; subsequent calls return the cached audio URL.
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audio ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DayAudio"
+        "404":
+          description: Curriculum day not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /progress:
+    get:
+      operationId: listProgress
+      tags: [progress]
+      summary: List the current user's progress across all days
+      responses:
+        "200":
+          description: Progress rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DayProgress"
+  /progress/{day}:
+    get:
+      operationId: getDayProgress
+      tags: [progress]
+      summary: Get the current user's progress for a day
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Day progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DayProgress"
+        "404":
+          description: Not started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /progress/{day}/lesson:
+    post:
+      operationId: completeLesson
+      tags: [progress]
+      summary: Mark the day's lesson complete
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated progress and stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressUpdate"
+  /progress/{day}/task:
+    post:
+      operationId: completeTask
+      tags: [progress]
+      summary: Submit the day's task work for structured AI mentor feedback
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskSubmissionInput"
+      responses:
+        "200":
+          description: Structured AI feedback with updated progress and stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskEvalResult"
+        "404":
+          description: Curriculum day not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /progress/{day}/practice:
+    post:
+      operationId: submitPractice
+      tags: [progress]
+      summary: Submit the inline practice exercise for AI grading
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PracticeSubmissionInput"
+      responses:
+        "200":
+          description: Pass/retry result with AI feedback and updated progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PracticeResult"
+        "404":
+          description: Curriculum day not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /progress/{day}/quiz:
+    post:
+      operationId: submitQuiz
+      tags: [progress]
+      summary: Submit quiz answers for the day
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizSubmission"
+      responses:
+        "200":
+          description: Quiz result with updated progress and stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+  /progress/{day}/reflection:
+    post:
+      operationId: submitReflection
+      tags: [progress]
+      summary: Submit a reflection for the day
+      parameters:
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReflectionInput"
+      responses:
+        "200":
+          description: Updated progress and stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressUpdate"
+
+  /achievements:
+    get:
+      operationId: listAchievements
+      tags: [achievements]
+      summary: List all achievement definitions with the current user's unlock status
+      responses:
+        "200":
+          description: Achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Achievement"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get this week's XP leaderboard with the current user's rank
+      responses:
+        "200":
+          description: Weekly leaderboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Leaderboard"
+
+  /users/{id}/profile:
+    get:
+      operationId: getPublicProfile
+      tags: [community]
+      summary: Get a user's public profile (only if they opted in)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Public profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfile"
+        "404":
+          description: Not found or profile is private
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /feed:
+    get:
+      operationId: listFeed
+      tags: [community]
+      summary: List community feed posts (newest first)
+      responses:
+        "200":
+          description: Feed posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FeedPost"
+    post:
+      operationId: createPost
+      tags: [community]
+      summary: Share a win or reflection to the community feed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostInput"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedPost"
+  /feed/{id}:
+    delete:
+      operationId: deletePost
+      tags: [community]
+      summary: Delete one of your own posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /feed/{id}/like:
+    post:
+      operationId: likePost
+      tags: [community]
+      summary: Like a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedPost"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: unlikePost
+      tags: [community]
+      summary: Remove your like from a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedPost"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /certificates:
+    get:
+      operationId: listCertificates
+      tags: [certificates]
+      summary: List the current user's certificates
+      responses:
+        "200":
+          description: Certificates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Certificate"
+    post:
+      operationId: issueCertificate
+      tags: [certificates]
+      summary: Issue a certificate to the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateInput"
+      responses:
+        "201":
+          description: Issued certificate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Certificate"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List the current user's projects
+      responses:
+        "200":
+          description: Projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectInput"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /projects/{id}:
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectUpdate"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /prompts:
+    get:
+      operationId: listPrompts
+      tags: [prompts]
+      summary: List the current user's saved prompts
+      responses:
+        "200":
+          description: Prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prompt"
+    post:
+      operationId: createPrompt
+      tags: [prompts]
+      summary: Save a prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptInput"
+      responses:
+        "201":
+          description: Created prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+  /prompts/{id}:
+    patch:
+      operationId: updatePrompt
+      tags: [prompts]
+      summary: Update a saved prompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptUpdate"
+      responses:
+        "200":
+          description: Updated prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deletePrompt
+      tags: [prompts]
+      summary: Delete a saved prompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /openai/conversations:
+    get:
+      operationId: listOpenaiConversations
+      tags: [openai]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiConversation"
+    post:
+      operationId: createOpenaiConversation
+      tags: [openai]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenaiConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversation"
+  /openai/conversations/{id}:
+    get:
+      operationId: getOpenaiConversation
+      tags: [openai]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+    delete:
+      operationId: deleteOpenaiConversation
+      tags: [openai]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenaiError"
+  /openai/conversations/{id}/messages:
+    get:
+      operationId: listOpenaiMessages
+      tags: [openai]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiMessage"
+    post:
+      operationId: sendOpenaiMessage
+      tags: [openai]
+      summary: Send a text message and receive a streaming text response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenaiMessageInput"
+      responses:
+        "200":
+          description: SSE stream of assistant text chunks
+          content:
+            text/event-stream: {}
+
+  /ai/playground:
+    post:
+      operationId: runPlayground
+      tags: [ai]
+      summary: Run a one-shot AI completion for the Playground
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaygroundInput"
+      responses:
+        "200":
+          description: Completion output
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaygroundOutput"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Me:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: ["string", "null"]
+        displayName:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        currentDay:
+          type: integer
+        xp:
+          type: integer
+        level:
+          type: integer
+        streakCount:
+          type: integer
+        streakFreezes:
+          type: integer
+        weeklyXp:
+          type: integer
+        isPublicProfile:
+          type: boolean
+        hideFromLeaderboard:
+          type: boolean
+        anonymousMode:
+          type: boolean
+        emailRemindersEnabled:
+          type: boolean
+        lastActiveDate:
+          type: ["string", "null"]
+        theme:
+          type: string
+        hasPaid:
+          type: boolean
+        isGrandfathered:
+          type: boolean
+        hasAccess:
+          type: boolean
+          description: True if the user can access all 28 days (paid or grandfathered).
+        accessibleThroughDay:
+          type: integer
+          description: Highest day number the user can currently open (1 for free preview, 28 if entitled).
+        onboardingCompleted:
+          type: boolean
+        workContext:
+          type: ["string", "null"]
+        programTitle:
+          type: ["string", "null"]
+        programFocus:
+          type: ["string", "null"]
+        dailyMinutes:
+          type: integer
+          description: Target minutes the learner wants to spend per day (10, 20, or 40). Drives lesson depth and day-completion requirements.
+        field:
+          type: ["string", "null"]
+          description: The domain the learner wants to apply AI to (e.g. marketing, engineering).
+        experienceLevel:
+          type: ["string", "null"]
+          description: Self-reported AI experience (beginner, some, advanced).
+        goal:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - currentDay
+        - dailyMinutes
+        - xp
+        - level
+        - streakCount
+        - streakFreezes
+        - weeklyXp
+        - isPublicProfile
+        - hideFromLeaderboard
+        - anonymousMode
+        - emailRemindersEnabled
+        - theme
+        - hasPaid
+        - isGrandfathered
+        - hasAccess
+        - accessibleThroughDay
+        - onboardingCompleted
+        - createdAt
+    MeUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+        theme:
+          type: string
+        isPublicProfile:
+          type: boolean
+        hideFromLeaderboard:
+          type: boolean
+        anonymousMode:
+          type: boolean
+        emailRemindersEnabled:
+          type: boolean
+        dailyMinutes:
+          type: integer
+          enum: [10, 20, 40]
+        field:
+          type: string
+        experienceLevel:
+          type: string
+
+    OnboardingInput:
+      type: object
+      properties:
+        answers:
+          type: object
+          additionalProperties:
+            type: string
+          description: Map of quiz step id -> selected option value.
+      required:
+        - answers
+    OnboardingProgram:
+      type: object
+      properties:
+        programTitle:
+          type: string
+        programFocus:
+          type: string
+        workContext:
+          type: ["string", "null"]
+        highlights:
+          type: array
+          items:
+            type: string
+        estimatedWeeks:
+          type: integer
+      required:
+        - programTitle
+        - programFocus
+        - highlights
+        - estimatedWeeks
+
+    PaymentOrder:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: integer
+          description: Amount in the smallest currency unit (paise).
+        currency:
+          type: string
+        razorpayKeyId:
+          type: string
+      required:
+        - orderId
+        - amount
+        - currency
+        - razorpayKeyId
+    PaymentVerifyInput:
+      type: object
+      properties:
+        razorpayOrderId:
+          type: string
+        razorpayPaymentId:
+          type: string
+        razorpaySignature:
+          type: string
+      required:
+        - razorpayOrderId
+        - razorpayPaymentId
+        - razorpaySignature
+
+    CurriculumDaySummary:
+      type: object
+      properties:
+        day:
+          type: integer
+        title:
+          type: string
+        theme:
+          type: string
+        lessonTitle:
+          type: string
+        taskTitle:
+          type: string
+        estimatedMinutes:
+          type: integer
+        xpReward:
+          type: integer
+      required:
+        - day
+        - title
+        - theme
+        - lessonTitle
+        - taskTitle
+        - estimatedMinutes
+        - xpReward
+    QuizQuestionPublic:
+      type: object
+      properties:
+        id:
+          type: integer
+        day:
+          type: integer
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        explanation:
+          type: ["string", "null"]
+          description: Shown after the learner answers, explaining why the correct option is right.
+        orderIndex:
+          type: integer
+      required:
+        - id
+        - day
+        - question
+        - options
+        - orderIndex
+    CurriculumDayDetail:
+      type: object
+      properties:
+        day:
+          type: integer
+        title:
+          type: string
+        theme:
+          type: string
+        lessonTitle:
+          type: string
+        lessonContent:
+          type: string
+        taskTitle:
+          type: string
+        taskDescription:
+          type: string
+        reflectionPrompt:
+          type: string
+        estimatedMinutes:
+          type: integer
+        xpReward:
+          type: integer
+        practicePrompt:
+          type: ["string", "null"]
+        audioUrl:
+          type: ["string", "null"]
+        audioDurationSec:
+          type: ["integer", "null"]
+        quiz:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestionPublic"
+      required:
+        - day
+        - title
+        - theme
+        - lessonTitle
+        - lessonContent
+        - taskTitle
+        - taskDescription
+        - reflectionPrompt
+        - estimatedMinutes
+        - xpReward
+        - quiz
+
+    DayProgress:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        day:
+          type: integer
+        lessonCompleted:
+          type: boolean
+        practiceCompleted:
+          type: boolean
+        practiceText:
+          type: ["string", "null"]
+        taskCompleted:
+          type: boolean
+        taskSubmission:
+          type: ["string", "null"]
+        taskScore:
+          type: ["integer", "null"]
+        taskFeedback:
+          oneOf:
+            - $ref: "#/components/schemas/TaskFeedback"
+            - type: "null"
+        quizCompleted:
+          type: boolean
+        quizScore:
+          type: ["integer", "null"]
+        reflectionText:
+          type: ["string", "null"]
+        reflectionCompleted:
+          type: boolean
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - day
+        - lessonCompleted
+        - practiceCompleted
+        - taskCompleted
+        - quizCompleted
+        - reflectionCompleted
+        - createdAt
+        - updatedAt
+    TaskFeedback:
+      type: object
+      properties:
+        strengths:
+          type: array
+          items:
+            type: string
+        improvements:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+      required:
+        - strengths
+        - improvements
+        - summary
+    TaskSubmissionInput:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 8000
+      required:
+        - text
+    TaskEvalResult:
+      type: object
+      properties:
+        passed:
+          type: boolean
+        score:
+          type: integer
+        feedback:
+          $ref: "#/components/schemas/TaskFeedback"
+        progress:
+          $ref: "#/components/schemas/DayProgress"
+        user:
+          $ref: "#/components/schemas/Me"
+        xpAwarded:
+          type: integer
+        leveledUp:
+          type: boolean
+        dayCompleted:
+          type: boolean
+        streakExtended:
+          type: boolean
+        unlockedAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+      required:
+        - passed
+        - score
+        - feedback
+        - progress
+        - user
+        - xpAwarded
+        - leveledUp
+        - dayCompleted
+        - streakExtended
+        - unlockedAchievements
+    PracticeSubmissionInput:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+      required:
+        - text
+    PracticeResult:
+      type: object
+      properties:
+        passed:
+          type: boolean
+        feedback:
+          type: string
+        progress:
+          $ref: "#/components/schemas/DayProgress"
+        user:
+          $ref: "#/components/schemas/Me"
+        xpAwarded:
+          type: integer
+        leveledUp:
+          type: boolean
+        dayCompleted:
+          type: boolean
+        streakExtended:
+          type: boolean
+        unlockedAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+      required:
+        - passed
+        - feedback
+        - progress
+        - user
+        - xpAwarded
+        - leveledUp
+        - dayCompleted
+        - streakExtended
+        - unlockedAchievements
+    DayAudio:
+      type: object
+      properties:
+        audioUrl:
+          type: string
+        durationSec:
+          type: ["integer", "null"]
+      required:
+        - audioUrl
+        - durationSec
+    Achievement:
+      type: object
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        unlockedAt:
+          type: ["string", "null"]
+          format: date-time
+      required:
+        - code
+        - title
+        - description
+        - icon
+    LeaderboardEntry:
+      type: object
+      properties:
+        userId:
+          type: integer
+        rank:
+          type: integer
+        displayName:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        level:
+          type: integer
+        streakCount:
+          type: integer
+        weeklyXp:
+          type: integer
+        isMe:
+          type: boolean
+        isPublicProfile:
+          type: boolean
+      required:
+        - userId
+        - rank
+        - level
+        - streakCount
+        - weeklyXp
+        - isMe
+        - isPublicProfile
+    Leaderboard:
+      type: object
+      properties:
+        weekStart:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+        me:
+          oneOf:
+            - $ref: "#/components/schemas/LeaderboardEntry"
+            - type: "null"
+      required:
+        - weekStart
+        - entries
+        - me
+    PublicProfile:
+      type: object
+      properties:
+        userId:
+          type: integer
+        displayName:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        level:
+          type: integer
+        xp:
+          type: integer
+        streakCount:
+          type: integer
+        completedDays:
+          type: integer
+        badges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+        joinedAt:
+          type: string
+          format: date-time
+      required:
+        - userId
+        - level
+        - xp
+        - streakCount
+        - completedDays
+        - badges
+        - joinedAt
+    PostAuthor:
+      type: object
+      properties:
+        userId:
+          type: integer
+        displayName:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        level:
+          type: integer
+        isPublicProfile:
+          type: boolean
+      required:
+        - userId
+        - level
+        - isPublicProfile
+    FeedPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        day:
+          type: ["integer", "null"]
+        kind:
+          type: string
+          enum: [win, reflection]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        author:
+          $ref: "#/components/schemas/PostAuthor"
+        likeCount:
+          type: integer
+        likedByMe:
+          type: boolean
+        isMine:
+          type: boolean
+      required:
+        - id
+        - kind
+        - content
+        - createdAt
+        - author
+        - likeCount
+        - likedByMe
+        - isMine
+    PostInput:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        day:
+          type: integer
+        kind:
+          type: string
+          enum: [win, reflection]
+      required:
+        - content
+    ProgressUpdate:
+      type: object
+      properties:
+        progress:
+          $ref: "#/components/schemas/DayProgress"
+        user:
+          $ref: "#/components/schemas/Me"
+        xpAwarded:
+          type: integer
+        leveledUp:
+          type: boolean
+        dayCompleted:
+          type: boolean
+        streakExtended:
+          type: boolean
+        unlockedAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+      required:
+        - progress
+        - user
+        - xpAwarded
+        - leveledUp
+        - dayCompleted
+        - streakExtended
+        - unlockedAchievements
+    QuizSubmission:
+      type: object
+      properties:
+        answers:
+          type: array
+          items:
+            type: integer
+      required:
+        - answers
+    QuizResult:
+      type: object
+      properties:
+        score:
+          type: integer
+        total:
+          type: integer
+        passed:
+          type: boolean
+        progress:
+          $ref: "#/components/schemas/DayProgress"
+        user:
+          $ref: "#/components/schemas/Me"
+        xpAwarded:
+          type: integer
+        leveledUp:
+          type: boolean
+        dayCompleted:
+          type: boolean
+        streakExtended:
+          type: boolean
+        correctIndexes:
+          type: array
+          items:
+            type: integer
+        unlockedAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+      required:
+        - score
+        - total
+        - passed
+        - progress
+        - user
+        - xpAwarded
+        - leveledUp
+        - dayCompleted
+        - streakExtended
+        - correctIndexes
+        - unlockedAchievements
+    ReflectionInput:
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text
+
+    Certificate:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        credentialId:
+          type: string
+        issuedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - credentialId
+        - issuedAt
+    CertificateInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+      required:
+        - title
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+        progress:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - status
+        - progress
+        - createdAt
+        - updatedAt
+    ProjectInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        status:
+          type: string
+        progress:
+          type: integer
+      required:
+        - title
+    ProjectUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        status:
+          type: string
+        progress:
+          type: integer
+
+    Prompt:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        category:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - body
+        - createdAt
+        - updatedAt
+    PromptInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        category:
+          type: string
+      required:
+        - title
+        - body
+    PromptUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        category:
+          type: string
+
+    OpenaiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+    OpenaiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+    OpenaiConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+    OpenaiMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+    OpenaiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/OpenaiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+    OpenaiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    PlaygroundInput:
+      type: object
+      properties:
+        prompt:
+          type: string
+          minLength: 1
+        system:
+          type: string
+      required:
+        - prompt
+    PlaygroundOutput:
+      type: object
+      properties:
+        output:
+          type: string
+      required:
+        - output

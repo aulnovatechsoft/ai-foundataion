@@ -1,0 +1,72 @@
+import express, { type Express } from "express";
+import cors from "cors";
+import pinoHttp from "pino-http";
+import path from "path";
+import fs from "fs";
+import { clerkMiddleware } from "@clerk/express";
+import { publishableKeyFromHost } from "@clerk/shared/keys";
+import {
+  CLERK_PROXY_PATH,
+  clerkProxyMiddleware,
+  getClerkProxyHost,
+} from "./middlewares/clerkProxyMiddleware";
+import router from "./routes";
+import { logger } from "./lib/logger";
+import { scheduleStreakReminders } from "./lib/streakScheduler";
+import { razorpayWebhookHandler } from "./routes/webhook";
+
+const app: Express = express();
+
+app.use(
+  pinoHttp({
+    logger,
+    serializers: {
+      req(req) {
+        return {
+          id: req.id,
+          method: req.method,
+          url: req.url?.split("?")[0],
+        };
+      },
+      res(res) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
+  }),
+);
+
+app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
+
+app.use(cors({ credentials: true, origin: true }));
+
+// Razorpay webhook needs the raw body for signature verification, so it must
+// be registered before the JSON body parser.
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  razorpayWebhookHandler,
+);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  clerkMiddleware((req) => ({
+    publishableKey: publishableKeyFromHost(
+      getClerkProxyHost(req) ?? "",
+      process.env.CLERK_PUBLISHABLE_KEY,
+    ),
+  })),
+);
+
+const audioDir = path.join(process.cwd(), "audio");
+if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
+app.use("/api/audio", express.static(audioDir));
+
+app.use("/api", router);
+
+scheduleStreakReminders();
+
+export default app;

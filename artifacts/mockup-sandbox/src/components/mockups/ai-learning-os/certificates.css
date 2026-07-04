@@ -1,0 +1,126 @@
+[data-theme="midnight"] {
+  --bg: 230 15% 7%;
+  --surface: 230 15% 10%;
+  --surface-2: 230 15% 14%;
+  --text: 0 0% 98%;
+  --text-muted: 230 15% 60%;
+  --border: 230 15% 18%;
+  --accent: 255 85% 65%;
+  --accent-2: 185 100% 45%;
+}
+
+[data-theme="daylight"] {
+  --bg: 220 30% 97%;
+  --surface: 0 0% 100%;
+  --surface-2: 220 25% 94%;
+  --text: 230 28% 12%;
+  --text-muted: 230 12% 42%;
+  --border: 230 16% 87%;
+  --accent: 255 80% 60%;
+  --accent-2: 190 95% 36%;
+}
+
+[data-theme="aurora"] {
+  --bg: 250 25% 8%;
+  --surface: 250 22% 12%;
+  --surface-2: 250 20% 16%;
+  --text: 30 30% 97%;
+  --text-muted: 258 12% 64%;
+  --border: 260 20% 20%;
+  --accent: 12 90% 62%;
+  --accent-2: 32 96% 60%;
+}
+
+.cert-container {
+  background-color: hsl(var(--bg));
+  color: hsl(var(--text));
+}
+
+.cert-sidebar {
+  background-color: hsl(var(--surface));
+  border-right: 1px solid hsl(var(--border));
+}
+
+.cert-topbar {
+  background-color: hsl(var(--surface));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.cert-card {
+  background-color: hsl(var(--surface));
+  border: 1px solid hsl(var(--border));
+}
+
+.cert-card-hover:hover {
+  border-color: hsl(var(--accent));
+}
+
+.text-muted {
+  color: hsl(var(--text-muted));
+}
+
+.bg-surface-2 {
+  background-color: hsl(var(--surface-2));
+}
+
+.border-color {
+  border-color: hsl(var(--border));
+}
+
+.bg-gradient-accent {
+  background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--accent-2)));
+}
+
+.text-gradient-accent {
+  background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--accent-2)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes cert-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: cert-fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+
+/* Certificate artwork */
+.certificate-artwork {
+  position: relative;
+  overflow: hidden;
+  background-color: hsl(var(--surface));
+  border: 8px solid hsl(var(--surface-2));
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
+}
+
+[data-theme="daylight"] .certificate-artwork {
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05);
+}
+
+.certificate-artwork::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--accent-2)));
+}
+
+.cert-pattern {
+  background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.4;
+}

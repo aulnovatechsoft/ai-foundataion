@@ -1,0 +1,113 @@
+.os-dashboard {
+  background-color: hsl(var(--bg));
+  color: hsl(var(--text));
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.os-dashboard * {
+  border-color: hsl(var(--border));
+}
+
+.os-heading {
+  font-family: 'Clash Display', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.os-sidebar-link {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.os-sidebar-link:hover {
+  background: hsl(var(--surface-2));
+  color: hsl(var(--text));
+}
+
+.os-sidebar-link[data-active="true"] {
+  background: linear-gradient(90deg, hsl(var(--accent) / 0.1) 0%, transparent 100%);
+  color: hsl(var(--accent));
+  border-left: 2px solid hsl(var(--accent));
+}
+
+.os-card {
+  background: hsl(var(--surface));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.os-card:hover {
+  border-color: hsl(var(--border) / 0.8);
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+}
+
+.os-glass-panel {
+  background: linear-gradient(145deg, hsl(var(--surface-2) / 0.6), hsl(var(--surface) / 0.9));
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 1.25rem;
+}
+
+.os-gradient-text {
+  background: linear-gradient(135deg, hsl(var(--accent-2)), hsl(var(--accent)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.os-task-row {
+  transition: all 0.2s ease;
+}
+
+.os-task-row:hover[data-status="available"] {
+  background: hsl(var(--surface-2));
+  cursor: pointer;
+}
+
+.os-task-row[data-status="active"] {
+  background: hsl(var(--accent) / 0.05);
+  border: 1px solid hsl(var(--accent) / 0.2);
+}
+
+.os-task-row[data-status="completed"] {
+  opacity: 0.7;
+}
+
+.os-task-row[data-status="locked"] {
+  opacity: 0.4;
+}
+
+.os-progress-bar {
+  background: linear-gradient(90deg, hsl(var(--accent-2)), hsl(var(--accent)));
+}
+
+.os-glow-effect {
+  box-shadow: 0 0 20px -5px hsl(var(--accent) / 0.3);
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+
+.os-button-primary {
+  background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent) / 0.8));
+  color: #ffffff; /* keep text white on primary button regardless of theme if accent is dark enough, or use theme logic if needed */
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px -4px hsl(var(--accent) / 0.5);
+}
+
+.os-button-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 16px -4px hsl(var(--accent) / 0.6);
+  transform: translateY(-1px);
+}
