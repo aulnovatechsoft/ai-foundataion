@@ -1,14 +1,18 @@
 import type { User } from "@workspace/db";
 
 export const TOTAL_DAYS = 28;
-export const FREE_PREVIEW_THROUGH_DAY = 1;
+/**
+ * Hard paywall: zero free days. Unpaid users can open no day of the program —
+ * the entire 28-day curriculum is gated behind payment (pay-first funnel).
+ */
+export const FREE_PREVIEW_THROUGH_DAY = 0;
 
 /** A user has full access if they paid or were grandfathered in. */
 export function userHasAccess(user: Pick<User, "hasPaid" | "isGrandfathered">): boolean {
   return user.hasPaid || user.isGrandfathered;
 }
 
-/** Highest day the user may open right now (1 for the free preview, 28 when entitled). */
+/** Highest day the user may open right now (0 when unpaid, 28 when entitled). */
 export function accessibleThroughDay(
   user: Pick<User, "hasPaid" | "isGrandfathered">,
 ): number {

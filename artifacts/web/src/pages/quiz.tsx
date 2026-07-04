@@ -611,8 +611,8 @@ function RevealStep({
           <Sparkles className="w-5 h-5 text-white" />
         </div>
         <div>
-          <p className="font-bold text-[hsl(var(--text))]">Day 1 is on us — free.</p>
-          <p className="text-sm text-[hsl(var(--text-muted))]">Create your account to start your first mission right now.</p>
+          <p className="font-bold text-[hsl(var(--text))]">Lifetime access to all 28 days.</p>
+          <p className="text-sm text-[hsl(var(--text-muted))]">Create your account to unlock your personalized program and start today.</p>
         </div>
       </div>
 
@@ -620,7 +620,7 @@ function RevealStep({
         onClick={onStart}
         className="w-full max-w-lg bg-[hsl(var(--text))] text-[hsl(var(--bg))] px-8 py-4 rounded-full font-bold text-lg hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
       >
-        Start Day 1 Free <ArrowRight className="w-5 h-5" />
+        Unlock My Program <ArrowRight className="w-5 h-5" />
       </button>
       <Link href="/sign-in" className="text-sm text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text))]">
         Already have an account? Sign in

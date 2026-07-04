@@ -31,7 +31,7 @@ export const users = pgTable("users", {
     .notNull()
     .default(true),
   lastActiveDate: date("last_active_date", { mode: "string" }),
-  theme: text("theme").notNull().default("midnight"),
+  theme: text("theme").notNull().default("daylight"),
   // Entitlement / paywall
   hasPaid: boolean("has_paid").notNull().default(false),
   paidAt: timestamp("paid_at", { withTimezone: true }),

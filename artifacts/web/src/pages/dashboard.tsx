@@ -45,23 +45,7 @@ function DashboardContent() {
   }
 
   if (dayLocked) {
-    return (
-      <div className="max-w-lg mx-auto text-center py-16 animate-slide-up">
-        <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--accent))/0.1] flex items-center justify-center mx-auto mb-6">
-          <Lock className="w-8 h-8 text-[hsl(var(--accent))]" />
-        </div>
-        <h1 className="text-3xl text-[hsl(var(--text))] font-heading font-bold mb-3">Nice work on Day 1! 🎉</h1>
-        <p className="text-[hsl(var(--text-muted))] text-lg mb-8">
-          {me?.programTitle ? `"${me.programTitle}" is ready for you. ` : ""}
-          Unlock the full 28-day program to keep your streak going.
-        </p>
-        <Link href="/upgrade">
-          <Button className="h-12 px-8 text-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))/0.9] text-white rounded-full">
-            <Sparkles className="w-5 h-5 mr-2" /> Unlock Full Access
-          </Button>
-        </Link>
-      </div>
-    );
+    return <Redirect to="/upgrade" />;
   }
 
   const isLessonComplete = progress?.lessonCompleted;

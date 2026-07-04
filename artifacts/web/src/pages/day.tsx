@@ -132,7 +132,7 @@ function DayContent({ day }: { day: number }) {
         </div>
         <h1 className="text-3xl font-heading font-bold text-[hsl(var(--text))] mb-3">Day {day} is locked</h1>
         <p className="text-[hsl(var(--text-muted))] text-lg mb-8">
-          You've completed your free Day 1 preview. Unlock the full 28-day program to continue your journey.
+          Unlock the full 28-day program to start your personalized journey.
         </p>
         <Link href="/upgrade">
           <Button className="h-12 px-8 text-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))/0.9] text-white rounded-full">
