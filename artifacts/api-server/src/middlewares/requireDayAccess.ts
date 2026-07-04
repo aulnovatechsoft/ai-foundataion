@@ -5,7 +5,7 @@ import { canAccessDay } from "../lib/entitlement";
 
 /**
  * Guards day-scoped routes behind the paywall. Must run after `requireAuth`.
- * Day 1 is a free preview; Days 2-28 require a paid or grandfathered user.
+ * Hard paywall: every day (1-28) requires a paid or grandfathered user.
  * Returns 402 Payment Required when the day is locked.
  */
 export async function requireDayAccess(

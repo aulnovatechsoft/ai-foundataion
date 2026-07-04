@@ -16,7 +16,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { data: me } = useGetMe({ query: { enabled: !!isSignedIn, queryKey: getGetMeQueryKey() } });
   const updateMe = useUpdateMe();
   
-  const [theme, setLocalTheme] = useState<ThemeName>("midnight");
+  const [theme, setLocalTheme] = useState<ThemeName>("daylight");
 
   useEffect(() => {
     if (me?.theme) {

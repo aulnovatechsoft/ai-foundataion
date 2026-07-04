@@ -167,7 +167,7 @@ function UpgradeContent() {
       <main className="max-w-3xl mx-auto px-6 py-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[hsl(var(--accent))/0.1] text-[hsl(var(--accent))] font-bold text-sm tracking-wider uppercase mb-6">
-            <Lock className="w-4 h-4" /> You finished Day 1
+            <Lock className="w-4 h-4" /> One step from full access
           </div>
           <h1 className="text-4xl md:text-5xl font-bold font-heading text-[hsl(var(--text))] tracking-tight mb-4">
             Unlock your full 28-day program

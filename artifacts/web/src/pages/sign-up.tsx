@@ -5,7 +5,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--bg))] p-4">
       <div className="w-full max-w-md animate-slide-up">
-        <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+        <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} forceRedirectUrl={`${basePath}/upgrade`} />
       </div>
     </div>
   );
