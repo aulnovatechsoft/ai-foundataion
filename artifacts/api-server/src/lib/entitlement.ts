@@ -36,5 +36,9 @@ export function serializeMe(user: User) {
     createdAt: user.createdAt,
     hasAccess: userHasAccess(user),
     accessibleThroughDay: accessibleThroughDay(user),
+    // Surface the raw aspiration answer so the paywall can reinforce the
+    // learner's "why" even when localStorage is unavailable (new device,
+    // cleared storage, or a direct visit to /upgrade).
+    aspiration: user.onboardingAnswers?.aspiration ?? null,
   };
 }

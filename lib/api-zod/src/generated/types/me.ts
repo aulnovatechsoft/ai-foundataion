@@ -5,6 +5,8 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { MeOnboardingAnswers } from './meOnboardingAnswers';
+import type { MeWeeklyActivityItem } from './meWeeklyActivityItem';
 
 export interface Me {
   id: number;
@@ -54,5 +56,29 @@ export interface Me {
   experienceLevel?: string | null;
   /** @nullable */
   goal?: string | null;
+  /**
+     * Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner's first-win focus.
+     * @nullable
+     */
+  onboardingAnswers?: MeOnboardingAnswers;
+  /**
+     * The learner's selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning/authenticated users.
+     * @nullable
+     */
+  aspiration?: string | null;
+  /**
+     * Name the learner wants printed on course certificates.
+     * @nullable
+     */
+  certificateName?: string | null;
+  /** True once the learner finished the certificate/course onboarding wizard. */
+  certOnboardingDone?: boolean;
+  /**
+     * Slug of the tool course the learner is currently working through.
+     * @nullable
+     */
+  activeCourseSlug?: string | null;
+  /** Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET /me; each entry marks whether the user was active that calendar day. */
+  weeklyActivity?: MeWeeklyActivityItem[];
   createdAt: Date;
 }

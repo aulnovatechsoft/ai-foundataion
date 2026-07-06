@@ -360,16 +360,17 @@ Coursiv's growth engine is a **pay-first quiz funnel**: the visitor is emotional
 | Quiz | 20–30+ steps w/ interstitials | Long multi-step quiz with testimonials, commitment & social-proof interstitials |
 | Loader | "Building your plan" | "Building your program" animated loader |
 | Reveal | Plan summary + chart + reviews | Personalized program reveal: title, focus, projected-growth chart, highlights, testimonials |
-| Paywall | Discounted trial / one-time | One-time lifetime unlock (Razorpay), shown right after account creation |
-| Account | Captured at checkout | Clerk account created after reveal, then routed straight to paywall |
+| Paywall | Priced offer shown immediately after reveal, before account/payment | Same pricing/value-stack page shown **immediately after reveal**, before any account exists — value stack, urgency banner, guarantee, testimonials, FAQ |
+| Account | Captured at checkout | Clerk account created only when the visitor commits (clicks the paywall CTA); redirected straight back to the same paywall, now authenticated |
+| Payment | Captured at checkout | Razorpay checkout fires immediately once authenticated, on the same paywall page |
 | Access model | **Zero free lessons** | **Zero free days — hard paywall** (`FREE_PREVIEW_THROUGH_DAY = 0`) |
 
-**Flow:** Landing → Quiz → Building loader → Results reveal → Create account → Paywall → Pay → Full 28-day access.
+**Flow:** Landing → Quiz → Building loader → Results reveal → **Paywall (anonymous preview)** → Create account → **Paywall (authenticated, same page)** → Pay → Full 28-day access.
 
 ### 13.3 Key differences & rationale
 
 - **Hard paywall (zero free days).** Previously Day 1 was a free preview; we now gate the entire curriculum behind payment, matching Coursiv. Enforced server-side (`requireDayAccess` returns 402 for any day when unpaid), so both web and mobile are covered by one change. Signed-in but unpaid users are redirected to the paywall and never reach course content.
-- **Account-before-payment, not before-value.** Razorpay checkout requires an authenticated user, so account creation is deliberately placed *after* the value-building reveal and *immediately before* payment — the account step doubles as the checkout gate.
+- **Pay-first ordering, not account-first.** The reveal's CTA routes straight to `/upgrade`, which renders the full pricing/value page to anonymous visitors (no login wall). Only the CTA click triggers account creation (`/sign-up`, `forceRedirectUrl=/upgrade`); Razorpay checkout then fires once the visitor is authenticated, back on the same page. This mirrors Coursiv's "see the price and offer before you commit an account" psychology, while still satisfying Razorpay's requirement that checkout needs an authenticated user.
 - **Richer landing than Coursiv.** Coursiv pushes visitors into the quiz almost immediately. We keep a substantive landing page (social proof, curriculum preview, AI-mentor differentiators) so organic/SEO visitors get context, while the primary CTA still funnels into the quiz.
 - **Differentiators preserved.** Unlike Coursiv, our reveal and product lead with the **AI-mentor grading** and **reflection** loop — the paywall promises graded feedback, not just video lessons.
 

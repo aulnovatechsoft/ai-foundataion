@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { fonts, type Palette } from "@/constants/colors";
 import { useColors } from "@/hooks/useColors";
+import { hapticLight } from "@/lib/haptics";
 
 /* -------------------------------------------------------------------------- */
 /*  Icons                                                                     */
@@ -77,7 +78,10 @@ export type IconName =
   | "milestone"
   | "users"
   | "trending-up"
-  | "heart";
+  | "heart"
+  | "star"
+  | "shield"
+  | "infinity";
 
 type IconSpec =
   | { set: "feather"; name: React.ComponentProps<typeof Feather>["name"] }
@@ -141,6 +145,9 @@ const ICONS: Record<IconName, IconSpec> = {
   users: { set: "feather", name: "users" },
   "trending-up": { set: "feather", name: "trending-up" },
   heart: { set: "feather", name: "heart" },
+  star: { set: "ion", name: "star" },
+  shield: { set: "feather", name: "shield" },
+  infinity: { set: "mci", name: "infinity" },
 };
 
 export function Icon({
@@ -414,7 +421,10 @@ export function GradientButton({
   const c = useColors();
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        hapticLight();
+        onPress?.();
+      }}
       disabled={disabled || loading}
       style={({ pressed }) => [
         { borderRadius: 14, opacity: disabled ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
@@ -468,7 +478,10 @@ export function SolidButton({
   const c = useColors();
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        hapticLight();
+        onPress?.();
+      }}
       disabled={disabled || loading}
       style={({ pressed }) => [
         {

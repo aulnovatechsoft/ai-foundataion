@@ -36,6 +36,10 @@ export const users = pgTable("users", {
   hasPaid: boolean("has_paid").notNull().default(false),
   paidAt: timestamp("paid_at", { withTimezone: true }),
   isGrandfathered: boolean("is_grandfathered").notNull().default(false),
+  // Post-payment certificate onboarding (Coursiv-style wizard)
+  certificateName: text("certificate_name"),
+  certOnboardingDone: boolean("cert_onboarding_done").notNull().default(false),
+  activeCourseSlug: text("active_course_slug"),
   // Personalization / onboarding funnel
   onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
   onboardingAnswers: jsonb("onboarding_answers").$type<Record<string, string>>(),

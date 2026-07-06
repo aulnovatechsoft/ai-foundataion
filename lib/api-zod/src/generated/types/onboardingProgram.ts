@@ -13,4 +13,9 @@ export interface OnboardingProgram {
   workContext?: string | null;
   highlights: string[];
   estimatedWeeks: number;
+  /**
+     * How the first week's missions are themed toward the learner's first-win focus (help_first/week_result). Null when those answers are missing.
+     * @nullable
+     */
+  firstWeekFocus?: string | null;
 }

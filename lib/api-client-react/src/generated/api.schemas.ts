@@ -13,6 +13,18 @@ export interface Error {
   error: string;
 }
 
+/**
+ * Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner's first-win focus.
+ * @nullable
+ */
+export type MeOnboardingAnswers = {[key: string]: string} | null;
+
+export type MeWeeklyActivityItem = {
+  /** Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks). */
+  date: string;
+  active: boolean;
+};
+
 export interface Me {
   id: number;
   /** @nullable */
@@ -61,6 +73,30 @@ export interface Me {
   experienceLevel?: string | null;
   /** @nullable */
   goal?: string | null;
+  /**
+     * Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner's first-win focus.
+     * @nullable
+     */
+  onboardingAnswers?: MeOnboardingAnswers;
+  /**
+     * The learner's selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning/authenticated users.
+     * @nullable
+     */
+  aspiration?: string | null;
+  /**
+     * Name the learner wants printed on course certificates.
+     * @nullable
+     */
+  certificateName?: string | null;
+  /** True once the learner finished the certificate/course onboarding wizard. */
+  certOnboardingDone?: boolean;
+  /**
+     * Slug of the tool course the learner is currently working through.
+     * @nullable
+     */
+  activeCourseSlug?: string | null;
+  /** Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET /me; each entry marks whether the user was active that calendar day. */
+  weeklyActivity?: MeWeeklyActivityItem[];
   createdAt: string;
 }
 
@@ -103,6 +139,11 @@ export interface OnboardingProgram {
   workContext?: string | null;
   highlights: string[];
   estimatedWeeks: number;
+  /**
+     * How the first week's missions are themed toward the learner's first-win focus (help_first/week_result). Null when those answers are missing.
+     * @nullable
+     */
+  firstWeekFocus?: string | null;
 }
 
 export interface PaymentOrder {
@@ -119,6 +160,19 @@ export interface PaymentVerifyInput {
   razorpaySignature: string;
 }
 
+/**
+ * Drives the visual-path node badge.
+ */
+export type CurriculumDaySummaryNodeType = typeof CurriculumDaySummaryNodeType[keyof typeof CurriculumDaySummaryNodeType];
+
+
+export const CurriculumDaySummaryNodeType = {
+  start: 'start',
+  lesson: 'lesson',
+  review: 'review',
+  graduation: 'graduation',
+} as const;
+
 export interface CurriculumDaySummary {
   day: number;
   title: string;
@@ -127,6 +181,15 @@ export interface CurriculumDaySummary {
   taskTitle: string;
   estimatedMinutes: number;
   xpReward: number;
+  /** 1-4 level grouping (Days 1-7, 8-14, 15-21, 22-28). */
+  level: number;
+  /** Drives the visual-path node badge. */
+  nodeType: CurriculumDaySummaryNodeType;
+  /**
+     * Per-day illustration for the path medallion.
+     * @nullable
+     */
+  imageUrl?: string | null;
 }
 
 export interface QuizQuestionPublic {
@@ -141,6 +204,19 @@ export interface QuizQuestionPublic {
   explanation?: string | null;
   orderIndex: number;
 }
+
+/**
+ * Drives the visual-path node badge.
+ */
+export type CurriculumDayDetailNodeType = typeof CurriculumDayDetailNodeType[keyof typeof CurriculumDayDetailNodeType];
+
+
+export const CurriculumDayDetailNodeType = {
+  start: 'start',
+  lesson: 'lesson',
+  review: 'review',
+  graduation: 'graduation',
+} as const;
 
 export interface CurriculumDayDetail {
   day: number;
@@ -159,6 +235,15 @@ export interface CurriculumDayDetail {
   audioUrl?: string | null;
   /** @nullable */
   audioDurationSec?: number | null;
+  /** 1-4 level grouping (Days 1-7, 8-14, 15-21, 22-28). */
+  level: number;
+  /** Drives the visual-path node badge. */
+  nodeType: CurriculumDayDetailNodeType;
+  /**
+     * Per-day illustration for the path medallion.
+     * @nullable
+     */
+  imageUrl?: string | null;
   quiz: QuizQuestionPublic[];
 }
 
@@ -248,6 +333,88 @@ export interface DayAudio {
   audioUrl: string;
   /** @nullable */
   durationSec: number | null;
+}
+
+export interface LessonQuestion {
+  text: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface LessonStep {
+  html: string;
+  question?: LessonQuestion | null;
+}
+
+export interface CourseSummary {
+  id: number;
+  slug: string;
+  title: string;
+  tagline: string;
+  description: string;
+  icon: string;
+  color: string;
+  accent: string;
+  sortOrder: number;
+  lessonCount: number;
+  /** Lessons the current user has completed in this course. */
+  completedCount: number;
+}
+
+export interface CourseLessonDetail {
+  id: number;
+  unitId: number;
+  title: string;
+  summary: string;
+  estimatedMinutes: number;
+  xpReward: number;
+  sortOrder: number;
+  completed: boolean;
+  /** @nullable */
+  audioUrl?: string | null;
+  /** @nullable */
+  audioDurationSec?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  steps: LessonStep[];
+}
+
+export interface CourseUnitDetail {
+  id: number;
+  title: string;
+  sortOrder: number;
+  lessons: CourseLessonDetail[];
+}
+
+export type CourseDetail = CourseSummary & {
+  units: CourseUnitDetail[];
+};
+
+export interface CompleteLessonResult {
+  lessonId: number;
+  alreadyCompleted: boolean;
+  xpAwarded: number;
+  completedCount: number;
+  lessonCount: number;
+  courseCompleted: boolean;
+}
+
+export interface LessonAudio {
+  audioUrl: string;
+  /** @nullable */
+  durationSec: number | null;
+}
+
+export interface CertificateSetupInput {
+  /**
+     * Name to print on certificates.
+     * @minLength 1
+     * @maxLength 100
+     */
+  certificateName: string;
+  /** Slug of the course the learner picked to start with. */
+  activeCourseSlug?: string;
 }
 
 export interface LeaderboardEntry {
