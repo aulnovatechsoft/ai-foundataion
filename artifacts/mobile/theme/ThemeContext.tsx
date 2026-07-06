@@ -15,7 +15,8 @@ import {
 } from "@/constants/colors";
 
 const STORAGE_KEY = "upskil.theme";
-const DEFAULT_THEME: ThemeName = "midnight";
+// Matches the web app's default (ThemeProvider defaults to "daylight").
+const DEFAULT_THEME: ThemeName = "daylight";
 
 interface ThemeContextValue {
   name: ThemeName;

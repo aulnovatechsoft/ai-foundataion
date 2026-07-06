@@ -1094,6 +1094,29 @@ const CURRICULUM: DaySeed[] = [
   },
 ];
 
+// Visual-path grouping (see doc/LEARNING_EXPERIENCE_PLAN.md §7).
+// Level 1: Days 1-7, Level 2: 8-14, Level 3: 15-21, Level 4: 22-28.
+function levelForDay(day: number): number {
+  return Math.ceil(day / 7);
+}
+
+// Node badge type. Day 1 opens the journey (start), the last day of each of the
+// first three levels is a Review checkpoint (Days 7/14/21), and Day 28 graduates.
+function nodeTypeForDay(day: number): "start" | "lesson" | "review" | "graduation" {
+  if (day === 1) return "start";
+  if (day === 28) return "graduation";
+  if (day % 7 === 0) return "review";
+  return "lesson";
+}
+
+// Per-day illustration served statically by the API from
+// artifacts/api-server/curriculum-images (see app.ts). Stored as a relative
+// path so it is portable across dev/prod; clients resolve it against their API
+// base (web via the /api proxy, mobile via getApiBase()).
+function imageUrlForDay(day: number): string {
+  return `/api/curriculum-images/day-${String(day).padStart(2, "0")}.png`;
+}
+
 async function seed(): Promise<void> {
   if (CURRICULUM.length !== 28) {
     throw new Error(`Expected 28 days, got ${CURRICULUM.length}`);
@@ -1107,7 +1130,13 @@ async function seed(): Promise<void> {
     if (!practicePrompt) {
       throw new Error(`Missing practice prompt for day ${day.day}`);
     }
-    await db.insert(curriculumDays).values({ ...day, practicePrompt });
+    await db.insert(curriculumDays).values({
+      ...day,
+      practicePrompt,
+      level: levelForDay(day.day),
+      nodeType: nodeTypeForDay(day.day),
+      imageUrl: imageUrlForDay(day.day),
+    });
     if (quiz.length > 0) {
       await db.insert(quizQuestions).values(
         quiz.map((q, i) => {

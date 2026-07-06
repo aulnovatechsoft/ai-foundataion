@@ -54,7 +54,8 @@ export default function SignUpScreen() {
       const attempt = await signUp.attemptEmailAddressVerification({ code });
       if (attempt.status === "complete") {
         await setActive({ session: attempt.createdSessionId });
-        router.replace("/(app)/(tabs)");
+        // Web parity: sign-up lands on the paywall (forceRedirectUrl=/upgrade).
+        router.replace("/(app)/upgrade");
       } else {
         setError("That code did not verify. Please try again.");
       }
@@ -76,7 +77,8 @@ export default function SignUpScreen() {
       });
       if (createdSessionId && ssoSetActive) {
         await ssoSetActive({ session: createdSessionId });
-        router.replace("/(app)/(tabs)");
+        // Web parity: sign-up lands on the paywall (forceRedirectUrl=/upgrade).
+        router.replace("/(app)/upgrade");
       }
     } catch (e: unknown) {
       setError(extractClerkError(e));

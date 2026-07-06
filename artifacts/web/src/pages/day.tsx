@@ -28,14 +28,17 @@ import {
   CheckCircle2, Lock, BookOpen, PenTool, HelpCircle, 
   MessageSquare, XCircle, Share2, Headphones, Zap,
   ChevronUp, ChevronDown, Play, Pause, SkipBack, SkipForward,
-  Sparkles, TrendingUp, AlertCircle, Loader2, Dumbbell, RotateCcw
+  Sparkles, TrendingUp, AlertCircle, Loader2, Dumbbell, RotateCcw, ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { useCelebration } from "@/providers/CelebrationProvider";
+import { GradeReveal } from "@/components/GradeReveal";
 import { motion, AnimatePresence } from "framer-motion";
-import { normalizePace, isRequired, PACE_LABEL, PACE_SUMMARY, shuffle } from "@/lib/pace";
-import { fieldLens, experienceNote } from "@/lib/personalization";
+import { normalizePace, isRequired, requiredSections, PACE_LABEL, PACE_SUMMARY, shuffle, type PaceSection } from "@/lib/pace";
+import { fieldLens, experienceNote, firstWinFocus, FIRST_WEEK_THROUGH_DAY } from "@/lib/personalization";
+
+const TOTAL_DAYS = 28;
 
 export default function DayPage() {
   const [match, params] = useRoute("/day/:day");
@@ -157,12 +160,35 @@ function DayContent({ day }: { day: number }) {
   const quizUnlocked = !!isLessonComplete && (taskRequired ? !!isTaskComplete : true);
   const lens = fieldLens(me?.field);
   const expNote = experienceNote(me?.experienceLevel);
+  const weekFocus = firstWinFocus(me?.onboardingAnswers);
+  const showWeekFocus = !!weekFocus && day <= FIRST_WEEK_THROUGH_DAY;
+
+  // Mirror the server's pace rules to know when every REQUIRED section is done.
+  const sectionDone: Record<PaceSection, boolean> = {
+    lessonCompleted: !!isLessonComplete,
+    taskCompleted: !!isTaskComplete,
+    quizCompleted: !!isQuizComplete,
+    reflectionCompleted: !!isReflectionComplete,
+  };
+  const isDayComplete = [...requiredSections(pace)].every((s) => sectionDone[s]);
+  // For the completed-day banner, point the learner at their real active day
+  // (advances to day+1 right after finishing; stays accurate when reviewing an
+  // older completed day). `null` means they're already on/at the latest day.
+  const resumeDay = me?.currentDay && me.currentDay > day ? me.currentDay : null;
 
   const handleCelebrations = (data: AnyProgressResult, event?: React.MouseEvent) => {
     if (data.xpAwarded && data.xpAwarded > 0) triggerXpBurst(data.xpAwarded, event);
     if (data.unlockedAchievements?.length) data.unlockedAchievements.forEach(triggerAchievementUnlock);
     if (data.leveledUp) triggerLevelUp(data.user.level);
-    if (data.dayCompleted) triggerDayComplete(data.progress.day, data.xpAwarded || 0, data.streakExtended);
+    if (data.dayCompleted) {
+      const completedDay = data.progress.day;
+      triggerDayComplete(
+        completedDay,
+        data.xpAwarded || 0,
+        data.streakExtended,
+        completedDay < TOTAL_DAYS ? completedDay + 1 : null,
+      );
+    }
   };
 
   const handleInvalidate = () => {
@@ -298,9 +324,48 @@ function DayContent({ day }: { day: number }) {
         </div>
       </div>
 
+      {isDayComplete && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="os-card p-5 md:p-6 border-[hsl(var(--accent-2))/0.4] bg-[hsl(var(--accent-2))/0.08] flex flex-col sm:flex-row sm:items-center gap-4"
+        >
+          <div className="w-12 h-12 rounded-full bg-[hsl(var(--accent-2))/0.15] flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-[hsl(var(--accent-2))]" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-heading font-bold">Day {day} complete</h2>
+            <p className="text-sm text-[hsl(var(--text-muted))]">
+              {resumeDay
+                ? `Nice work — Day ${resumeDay} is unlocked and ready on your dashboard.`
+                : "You're all caught up. Review your journey on the dashboard."}
+            </p>
+          </div>
+          <Link href="/dashboard">
+            <Button className="bg-[hsl(var(--accent-2))] hover:bg-[hsl(var(--accent-2))/0.9] text-white rounded-full px-6 whitespace-nowrap">
+              {resumeDay ? `Continue to Day ${resumeDay}` : "Back to Dashboard"}
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </motion.div>
+      )}
+
       {/* PACE + PERSONALIZATION */}
       {(lens || expNote || me) && (
         <div className="space-y-3 -mt-4">
+          {showWeekFocus && weekFocus && (
+            <div className="flex items-start gap-3 p-4 rounded-xl border border-[hsl(var(--accent-2))/0.3] bg-[hsl(var(--accent-2))/0.08]">
+              <Sparkles className="w-4 h-4 text-[hsl(var(--accent-2))] mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-[hsl(var(--text-muted))]">
+                <span className="font-semibold text-[hsl(var(--accent-2))]">Your first-week focus — {weekFocus.helpLabel}: </span>
+                {weekFocus.resultLabel ? (
+                  <>Today's mission is an early win toward your first-week goal: <span className="font-medium text-[hsl(var(--text))]">{weekFocus.resultLabel}</span>.</>
+                ) : (
+                  <>Today's mission is an early win toward the focus you picked first.</>
+                )}
+              </p>
+            </div>
+          )}
           {me && (
             <div className="flex items-start gap-3 p-4 rounded-xl border border-[hsl(var(--accent))/0.25] bg-[hsl(var(--accent))/0.06]">
               <Zap className="w-4 h-4 text-[hsl(var(--accent))] mt-0.5 flex-shrink-0" />
@@ -432,7 +497,7 @@ function DayContent({ day }: { day: number }) {
           </div>
         </div>
         <div className="p-6 md:p-8">
-          <div className="prose prose-invert max-w-none text-[hsl(var(--text))]">
+          <div className="lesson-content">
             <div dangerouslySetInnerHTML={{ __html: detail.lessonContent }} />
           </div>
           {!isLessonComplete && (
@@ -531,7 +596,7 @@ function DayContent({ day }: { day: number }) {
           </div>
         </div>
         <div className="p-6 md:p-8">
-          <div className="prose prose-invert max-w-none text-[hsl(var(--text))] mb-6">
+          <div className="lesson-content mb-6">
             <div dangerouslySetInnerHTML={{ __html: detail.taskDescription }} />
           </div>
 
@@ -562,17 +627,16 @@ function DayContent({ day }: { day: number }) {
             <AnimatePresence>
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                 <div className={`p-4 rounded-xl border ${taskResult.passed ? 'bg-green-500/10 border-green-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      {taskResult.passed ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <AlertCircle className="w-5 h-5 text-amber-400" />}
-                      <span className="font-semibold">{taskResult.passed ? "Great work!" : "Good effort!"}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-bold">
-                      <TrendingUp className="w-4 h-4 text-[hsl(var(--accent))]" />
-                      <span className="text-[hsl(var(--accent))]">{taskResult.score}/100</span>
+                  <div className="flex items-center gap-5 mb-4">
+                    <GradeReveal score={taskResult.score} total={100} passed={taskResult.passed} label="AI Score" />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        {taskResult.passed ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <AlertCircle className="w-5 h-5 text-amber-400" />}
+                        <span className="font-semibold">{taskResult.passed ? "Great work!" : "Good effort!"}</span>
+                      </div>
+                      <p className="text-sm text-[hsl(var(--text-muted))] leading-relaxed">{taskResult.feedback.summary}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-[hsl(var(--text-muted))] mb-4 leading-relaxed">{taskResult.feedback.summary}</p>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {taskResult.feedback.strengths.length > 0 && (
                       <div className="space-y-2">
@@ -689,9 +753,17 @@ function DayContent({ day }: { day: number }) {
             </motion.div>
           )}
           {isQuizComplete && (progress?.quizScore ?? submitQuiz.data?.score) != null && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="p-4 rounded-xl bg-[hsl(var(--accent-2))/0.1] border border-[hsl(var(--accent-2))/0.3] flex items-center justify-between">
-              <span className="font-semibold text-[hsl(var(--accent-2))]">Quiz Score</span>
-              <span className="text-xl font-bold text-[hsl(var(--accent-2))]">{progress?.quizScore ?? submitQuiz.data?.score} / {detail.quiz.length}</span>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl bg-[hsl(var(--accent-2))/0.1] border border-[hsl(var(--accent-2))/0.3] flex items-center gap-5">
+              <GradeReveal
+                score={progress?.quizScore ?? submitQuiz.data?.score ?? 0}
+                total={detail.quiz.length}
+                passed
+                label="Quiz Score"
+              />
+              <div className="flex-1">
+                <p className="font-semibold text-[hsl(var(--accent-2))] mb-1">Knowledge check passed</p>
+                <p className="text-sm text-[hsl(var(--text-muted))]">You answered {progress?.quizScore ?? submitQuiz.data?.score} of {detail.quiz.length} correctly. Reflection is unlocked.</p>
+              </div>
             </motion.div>
           )}
         </div>

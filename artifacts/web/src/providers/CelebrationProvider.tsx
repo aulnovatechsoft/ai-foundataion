@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
@@ -8,7 +9,7 @@ import { Achievement } from "@workspace/api-client-react";
 type CelebrationContextType = {
   triggerXpBurst: (xp: number, event?: React.MouseEvent) => void;
   triggerLevelUp: (newLevel: number) => void;
-  triggerDayComplete: (day: number, totalXp: number, streakExtended: boolean) => void;
+  triggerDayComplete: (day: number, totalXp: number, streakExtended: boolean, nextDay?: number | null) => void;
   triggerAchievementUnlock: (achievement: Achievement) => void;
 };
 
@@ -22,7 +23,10 @@ export function useCelebration() {
 
 export function CelebrationProvider({ children }: { children: ReactNode }) {
   const [levelUpData, setLevelUpData] = useState<{ level: number } | null>(null);
-  const [dayCompleteData, setDayCompleteData] = useState<{ day: number; xp: number; streakExtended: boolean } | null>(null);
+  const [dayCompleteData, setDayCompleteData] = useState<{ day: number; xp: number; streakExtended: boolean; nextDay: number | null } | null>(null);
+  const [, navigate] = useLocation();
+  const AUTO_REDIRECT_SECONDS = 6;
+  const [secondsLeft, setSecondsLeft] = useState(AUTO_REDIRECT_SECONDS);
   const [xpToasts, setXpToasts] = useState<{ id: string; xp: number; x: number; y: number }[]>([]);
 
   const triggerXpBurst = useCallback((xp: number, event?: React.MouseEvent) => {
@@ -56,8 +60,8 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const triggerDayComplete = useCallback((day: number, xp: number, streakExtended: boolean) => {
-    setDayCompleteData({ day, xp, streakExtended });
+  const triggerDayComplete = useCallback((day: number, xp: number, streakExtended: boolean, nextDay: number | null = null) => {
+    setDayCompleteData({ day, xp, streakExtended, nextDay });
     const duration = 3000;
     const end = Date.now() + duration;
 
@@ -106,6 +110,25 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
       </motion.div>
     ), { duration: 5000 });
   }, []);
+
+  const dismissDayComplete = useCallback(() => setDayCompleteData(null), []);
+  const continueToDashboard = useCallback(() => {
+    setDayCompleteData(null);
+    navigate("/dashboard");
+  }, [navigate]);
+
+  // Once the day is complete, gently auto-advance the learner to their dashboard
+  // (where the next day is already the active day). "Review this day" opts out.
+  useEffect(() => {
+    if (!dayCompleteData) return;
+    setSecondsLeft(AUTO_REDIRECT_SECONDS);
+    const tick = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
+    const redirect = setTimeout(() => continueToDashboard(), AUTO_REDIRECT_SECONDS * 1000);
+    return () => {
+      clearInterval(tick);
+      clearTimeout(redirect);
+    };
+  }, [dayCompleteData, continueToDashboard]);
 
   return (
     <CelebrationContext.Provider value={{ triggerXpBurst, triggerLevelUp, triggerDayComplete, triggerAchievementUnlock }}>
@@ -199,11 +222,20 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
                 )}
               </div>
               <button 
-                onClick={() => setDayCompleteData(null)}
+                onClick={continueToDashboard}
                 className="w-full py-3 rounded-xl bg-[hsl(var(--accent-2))] text-white font-semibold hover:bg-[hsl(var(--accent-2))/0.9] transition-colors"
               >
-                Awesome
+                {dayCompleteData.nextDay ? `Continue to Day ${dayCompleteData.nextDay}` : "Back to Dashboard"}
               </button>
+              <button
+                onClick={dismissDayComplete}
+                className="w-full mt-3 py-2.5 rounded-xl text-[hsl(var(--text-muted))] font-medium hover:text-[hsl(var(--text))] hover:bg-[hsl(var(--surface-2))] transition-colors"
+              >
+                Review this day
+              </button>
+              <p className="mt-4 text-xs text-[hsl(var(--text-muted))]">
+                Taking you to your dashboard in {secondsLeft}s…
+              </p>
             </motion.div>
           </motion.div>
         )}

@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CurriculumDayDetailNodeType } from './curriculumDayDetailNodeType';
 import type { QuizQuestionPublic } from './quizQuestionPublic';
 
 export interface CurriculumDayDetail {
@@ -24,5 +25,14 @@ export interface CurriculumDayDetail {
   audioUrl?: string | null;
   /** @nullable */
   audioDurationSec?: number | null;
+  /** 1-4 level grouping (Days 1-7, 8-14, 15-21, 22-28). */
+  level: number;
+  /** Drives the visual-path node badge. */
+  nodeType: CurriculumDayDetailNodeType;
+  /**
+     * Per-day illustration for the path medallion.
+     * @nullable
+     */
+  imageUrl?: string | null;
   quiz: QuizQuestionPublic[];
 }

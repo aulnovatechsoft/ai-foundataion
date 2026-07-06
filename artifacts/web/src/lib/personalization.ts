@@ -1,3 +1,5 @@
+import { getSelectedLabel } from "./quiz";
+
 /**
  * Lightweight personalization applied on top of the shared curriculum. Rather
  * than authoring hundreds of per-day variants, we surface a reusable "apply it
@@ -62,4 +64,38 @@ export function experienceNote(
     };
   }
   return null;
+}
+
+/**
+ * The last day (inclusive) that counts as the learner's "first week", where
+ * missions are biased toward their stated first-win focus.
+ */
+export const FIRST_WEEK_THROUGH_DAY = 7;
+
+export interface FirstWinFocus {
+  /** Human label of the learner's chosen first win (help_first). */
+  helpLabel: string;
+  /** Human label of the first-week result they want (week_result), if chosen. */
+  resultLabel: string | null;
+}
+
+/**
+ * Derive the learner's first-win focus from their raw onboarding answers so the
+ * first week's missions (days 1..FIRST_WEEK_THROUGH_DAY) visibly relate to what
+ * they said they wanted help with first. Reuses the quiz's own option-label
+ * resolver so the copy always matches what the learner actually picked.
+ *
+ * Returns null when `help_first` was never answered, so callers fall back
+ * gracefully to the un-personalized view.
+ */
+export function firstWinFocus(
+  answers: Record<string, string> | null | undefined,
+): FirstWinFocus | null {
+  if (!answers) return null;
+  const helpLabel = getSelectedLabel("help_first", answers);
+  if (!helpLabel) return null;
+  return {
+    helpLabel,
+    resultLabel: getSelectedLabel("week_result", answers),
+  };
 }

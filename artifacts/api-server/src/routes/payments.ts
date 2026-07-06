@@ -175,6 +175,25 @@ paymentsRouter.post("/payments/order", requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * Dev/testing-only shortcut: grant the authenticated user full access without
+ * going through Razorpay. Disabled in production so it can never be used to
+ * bypass real payment. Used by the paywall when Razorpay isn't configured so
+ * the funnel can still be tested end-to-end (quiz → account → dashboard).
+ */
+paymentsRouter.post("/payments/dev-unlock", requireAuth, async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  const [updated] = await db
+    .update(users)
+    .set({ hasPaid: true, paidAt: new Date() })
+    .where(eq(users.id, req.userId!))
+    .returning();
+  res.json(serializeMe(updated));
+});
+
 paymentsRouter.post("/payments/verify", requireAuth, async (req, res) => {
   const body = VerifyPaymentBody.safeParse(req.body);
   if (!body.success) {

@@ -28,6 +28,9 @@ import NotFound from "@/pages/not-found";
 import LeaderboardPage from "@/pages/leaderboard";
 import CommunityPage from "@/pages/community";
 import ProfilePage from "@/pages/profile";
+import WelcomePage from "@/pages/welcome";
+import CoursePathPage from "@/pages/course-path";
+import CourseLearnPage from "@/pages/course-learn";
 import { OnboardingSync } from "@/components/OnboardingSync";
 import { Show } from "@clerk/react";
 
@@ -78,9 +81,12 @@ function Router() {
       <Route path="/upgrade" component={UpgradePage} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
+      <Route path="/welcome" component={WelcomePage} />
       <Route path="/dashboard" component={DashboardPage} />
       <Route path="/path" component={PathPage} />
       <Route path="/day/:day" component={DayPage} />
+      <Route path="/course/:slug" component={CoursePathPage} />
+      <Route path="/course/:slug/learn" component={CourseLearnPage} />
       <Route path="/mentor" component={MentorPage} />
       <Route path="/projects" component={ProjectsPage} />
       <Route path="/prompts" component={PromptsPage} />

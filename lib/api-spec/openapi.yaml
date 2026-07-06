@@ -14,6 +14,8 @@ tags:
     description: Current user account and profile
   - name: curriculum
     description: 28-day curriculum content
+  - name: courses
+    description: Tool-based courses (ChatGPT, Claude, Gemini, Midjourney)
   - name: progress
     description: Learning progress and gamification
   - name: achievements
@@ -267,6 +269,118 @@ paths:
                 $ref: "#/components/schemas/DayAudio"
         "404":
           description: Curriculum day not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /courses:
+    get:
+      operationId: listCourses
+      tags: [courses]
+      summary: List all tool courses with the user's progress
+      responses:
+        "200":
+          description: Courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourseSummary"
+  /courses/{slug}:
+    get:
+      operationId: getCourse
+      tags: [courses]
+      summary: Get a course with its units, lessons and the user's progress
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Course detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourseDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /courses/lessons/{lessonId}/complete:
+    post:
+      operationId: completeCourseLesson
+      tags: [courses]
+      summary: Mark a lesson complete and award XP (idempotent)
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Completion result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompleteLessonResult"
+        "404":
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /courses/lessons/{lessonId}/audio:
+    post:
+      operationId: generateLessonAudio
+      tags: [courses]
+      summary: Generate (or fetch cached) audio narration for a lesson
+      description: Generates TTS narration once per lesson and caches it; subsequent calls return the cached audio URL.
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audio ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonAudio"
+        "404":
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /me/certificate-setup:
+    post:
+      operationId: saveCertificateSetup
+      tags: [account]
+      summary: Save the learner's certificate name and first course choice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateSetupInput"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "401":
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -999,6 +1113,37 @@ components:
           description: Self-reported AI experience (beginner, some, advanced).
         goal:
           type: ["string", "null"]
+        onboardingAnswers:
+          type: ["object", "null"]
+          additionalProperties:
+            type: string
+          description: Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner's first-win focus.
+        aspiration:
+          type: ["string", "null"]
+          description: The learner's selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning/authenticated users.
+        certificateName:
+          type: ["string", "null"]
+          description: Name the learner wants printed on course certificates.
+        certOnboardingDone:
+          type: boolean
+          description: True once the learner finished the certificate/course onboarding wizard.
+        activeCourseSlug:
+          type: ["string", "null"]
+          description: Slug of the tool course the learner is currently working through.
+        weeklyActivity:
+          type: array
+          description: Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET /me; each entry marks whether the user was active that calendar day.
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                description: Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).
+              active:
+                type: boolean
+            required:
+              - date
+              - active
         createdAt:
           type: string
           format: date-time
@@ -1072,6 +1217,9 @@ components:
             type: string
         estimatedWeeks:
           type: integer
+        firstWeekFocus:
+          type: ["string", "null"]
+          description: How the first week's missions are themed toward the learner's first-win focus (help_first/week_result). Null when those answers are missing.
       required:
         - programTitle
         - programFocus
@@ -1126,6 +1274,16 @@ components:
           type: integer
         xpReward:
           type: integer
+        level:
+          type: integer
+          description: 1-4 level grouping (Days 1-7, 8-14, 15-21, 22-28).
+        nodeType:
+          type: string
+          enum: [start, lesson, review, graduation]
+          description: Drives the visual-path node badge.
+        imageUrl:
+          type: ["string", "null"]
+          description: Per-day illustration for the path medallion.
       required:
         - day
         - title
@@ -1134,6 +1292,8 @@ components:
         - taskTitle
         - estimatedMinutes
         - xpReward
+        - level
+        - nodeType
     QuizQuestionPublic:
       type: object
       properties:
@@ -1187,6 +1347,16 @@ components:
           type: ["string", "null"]
         audioDurationSec:
           type: ["integer", "null"]
+        level:
+          type: integer
+          description: 1-4 level grouping (Days 1-7, 8-14, 15-21, 22-28).
+        nodeType:
+          type: string
+          enum: [start, lesson, review, graduation]
+          description: Drives the visual-path node badge.
+        imageUrl:
+          type: ["string", "null"]
+          description: Per-day illustration for the path medallion.
         quiz:
           type: array
           items:
@@ -1202,6 +1372,8 @@ components:
         - reflectionPrompt
         - estimatedMinutes
         - xpReward
+        - level
+        - nodeType
         - quiz
 
     DayProgress:
@@ -1371,6 +1543,186 @@ components:
       required:
         - audioUrl
         - durationSec
+    LessonQuestion:
+      type: object
+      properties:
+        text:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctIndex:
+          type: integer
+        explanation:
+          type: string
+      required:
+        - text
+        - options
+        - correctIndex
+        - explanation
+    LessonStep:
+      type: object
+      properties:
+        html:
+          type: string
+        question:
+          oneOf:
+            - $ref: "#/components/schemas/LessonQuestion"
+            - type: "null"
+      required:
+        - html
+    CourseSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        tagline:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+        accent:
+          type: string
+        sortOrder:
+          type: integer
+        lessonCount:
+          type: integer
+        completedCount:
+          type: integer
+          description: Lessons the current user has completed in this course.
+      required:
+        - id
+        - slug
+        - title
+        - tagline
+        - description
+        - icon
+        - color
+        - accent
+        - sortOrder
+        - lessonCount
+        - completedCount
+    CourseLessonDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        unitId:
+          type: integer
+        title:
+          type: string
+        summary:
+          type: string
+        estimatedMinutes:
+          type: integer
+        xpReward:
+          type: integer
+        sortOrder:
+          type: integer
+        completed:
+          type: boolean
+        audioUrl:
+          type: ["string", "null"]
+        audioDurationSec:
+          type: ["integer", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonStep"
+      required:
+        - id
+        - unitId
+        - title
+        - summary
+        - estimatedMinutes
+        - xpReward
+        - sortOrder
+        - completed
+        - steps
+    CourseUnitDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        sortOrder:
+          type: integer
+        lessons:
+          type: array
+          items:
+            $ref: "#/components/schemas/CourseLessonDetail"
+      required:
+        - id
+        - title
+        - sortOrder
+        - lessons
+    CourseDetail:
+      allOf:
+        - $ref: "#/components/schemas/CourseSummary"
+        - type: object
+          properties:
+            units:
+              type: array
+              items:
+                $ref: "#/components/schemas/CourseUnitDetail"
+          required:
+            - units
+    CompleteLessonResult:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+        alreadyCompleted:
+          type: boolean
+        xpAwarded:
+          type: integer
+        completedCount:
+          type: integer
+        lessonCount:
+          type: integer
+        courseCompleted:
+          type: boolean
+      required:
+        - lessonId
+        - alreadyCompleted
+        - xpAwarded
+        - completedCount
+        - lessonCount
+        - courseCompleted
+    LessonAudio:
+      type: object
+      properties:
+        audioUrl:
+          type: string
+        durationSec:
+          type: ["integer", "null"]
+      required:
+        - audioUrl
+        - durationSec
+    CertificateSetupInput:
+      type: object
+      properties:
+        certificateName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Name to print on certificates.
+        activeCourseSlug:
+          type: string
+          description: Slug of the course the learner picked to start with.
+      required:
+        - certificateName
     Achievement:
       type: object
       properties:

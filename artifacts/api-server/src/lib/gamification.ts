@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db, users, achievements, type User } from "@workspace/db";
+import { db, users, achievements, dailyActivity, type User } from "@workspace/db";
 import { serializeMe } from "./entitlement";
 
 const XP_PER_LEVEL = 500;
@@ -91,7 +91,7 @@ export function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function shiftDay(dateStr: string, deltaDays: number): string {
+export function shiftDay(dateStr: string, deltaDays: number): string {
   const d = new Date(`${dateStr}T00:00:00.000Z`);
   d.setUTCDate(d.getUTCDate() + deltaDays);
   return d.toISOString().slice(0, 10);
@@ -216,6 +216,14 @@ export async function applyUserActivity(
     })
     .where(eq(users.id, userId))
     .returning();
+
+  // Log today's activity for the weekly Mon–Sun streak row (idempotent).
+  await tx
+    .insert(dailyActivity)
+    .values({ userId, activityDate: today })
+    .onConflictDoNothing({
+      target: [dailyActivity.userId, dailyActivity.activityDate],
+    });
 
   const candidates = new Set<string>();
   if (xpAwarded > 0) candidates.add("first_step");

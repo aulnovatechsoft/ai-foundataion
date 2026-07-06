@@ -49,6 +49,15 @@ export const GetMeResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 })
 
@@ -98,6 +107,15 @@ export const UpdateMeResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 })
 
@@ -114,7 +132,8 @@ export const PreviewOnboardingResponse = zod.object({
   "programFocus": zod.string(),
   "workContext": zod.string().nullish(),
   "highlights": zod.array(zod.string()),
-  "estimatedWeeks": zod.number()
+  "estimatedWeeks": zod.number(),
+  "firstWeekFocus": zod.string().nullish().describe('How the first week\'s missions are themed toward the learner\'s first-win focus (help_first\/week_result). Null when those answers are missing.')
 })
 
 
@@ -154,6 +173,15 @@ export const SaveOnboardingResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 })
 
@@ -207,6 +235,15 @@ export const VerifyPaymentResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 })
 
@@ -230,7 +267,10 @@ export const ListCurriculumDaysResponseItem = zod.object({
   "lessonTitle": zod.string(),
   "taskTitle": zod.string(),
   "estimatedMinutes": zod.number(),
-  "xpReward": zod.number()
+  "xpReward": zod.number(),
+  "level": zod.number().describe('1-4 level grouping (Days 1-7, 8-14, 15-21, 22-28).'),
+  "nodeType": zod.enum(['start', 'lesson', 'review', 'graduation']).describe('Drives the visual-path node badge.'),
+  "imageUrl": zod.string().nullish().describe('Per-day illustration for the path medallion.')
 })
 export const ListCurriculumDaysResponse = zod.array(ListCurriculumDaysResponseItem)
 
@@ -256,6 +296,9 @@ export const GetCurriculumDayResponse = zod.object({
   "practicePrompt": zod.string().nullish(),
   "audioUrl": zod.string().nullish(),
   "audioDurationSec": zod.number().nullish(),
+  "level": zod.number().describe('1-4 level grouping (Days 1-7, 8-14, 15-21, 22-28).'),
+  "nodeType": zod.enum(['start', 'lesson', 'review', 'graduation']).describe('Drives the visual-path node badge.'),
+  "imageUrl": zod.string().nullish().describe('Per-day illustration for the path medallion.'),
   "quiz": zod.array(zod.object({
   "id": zod.number(),
   "day": zod.number(),
@@ -278,6 +321,160 @@ export const GenerateDayAudioParams = zod.object({
 export const GenerateDayAudioResponse = zod.object({
   "audioUrl": zod.string(),
   "durationSec": zod.number().nullable()
+})
+
+
+/**
+ * @summary List all tool courses with the user's progress
+ */
+export const ListCoursesResponseItem = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "tagline": zod.string(),
+  "description": zod.string(),
+  "icon": zod.string(),
+  "color": zod.string(),
+  "accent": zod.string(),
+  "sortOrder": zod.number(),
+  "lessonCount": zod.number(),
+  "completedCount": zod.number().describe('Lessons the current user has completed in this course.')
+})
+export const ListCoursesResponse = zod.array(ListCoursesResponseItem)
+
+
+/**
+ * @summary Get a course with its units, lessons and the user's progress
+ */
+export const GetCourseParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const GetCourseResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "tagline": zod.string(),
+  "description": zod.string(),
+  "icon": zod.string(),
+  "color": zod.string(),
+  "accent": zod.string(),
+  "sortOrder": zod.number(),
+  "lessonCount": zod.number(),
+  "completedCount": zod.number().describe('Lessons the current user has completed in this course.')
+}).and(zod.object({
+  "units": zod.array(zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "sortOrder": zod.number(),
+  "lessons": zod.array(zod.object({
+  "id": zod.number(),
+  "unitId": zod.number(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "estimatedMinutes": zod.number(),
+  "xpReward": zod.number(),
+  "sortOrder": zod.number(),
+  "completed": zod.boolean(),
+  "audioUrl": zod.string().nullish(),
+  "audioDurationSec": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "steps": zod.array(zod.object({
+  "html": zod.string(),
+  "question": zod.union([zod.object({
+  "text": zod.string(),
+  "options": zod.array(zod.string()),
+  "correctIndex": zod.number(),
+  "explanation": zod.string()
+}),zod.null()]).optional()
+}))
+}))
+}))
+}))
+
+
+/**
+ * @summary Mark a lesson complete and award XP (idempotent)
+ */
+export const CompleteCourseLessonParams = zod.object({
+  "lessonId": zod.coerce.number()
+})
+
+export const CompleteCourseLessonResponse = zod.object({
+  "lessonId": zod.number(),
+  "alreadyCompleted": zod.boolean(),
+  "xpAwarded": zod.number(),
+  "completedCount": zod.number(),
+  "lessonCount": zod.number(),
+  "courseCompleted": zod.boolean()
+})
+
+
+/**
+ * Generates TTS narration once per lesson and caches it; subsequent calls return the cached audio URL.
+ * @summary Generate (or fetch cached) audio narration for a lesson
+ */
+export const GenerateLessonAudioParams = zod.object({
+  "lessonId": zod.coerce.number()
+})
+
+export const GenerateLessonAudioResponse = zod.object({
+  "audioUrl": zod.string(),
+  "durationSec": zod.number().nullable()
+})
+
+
+/**
+ * @summary Save the learner's certificate name and first course choice
+ */
+export const saveCertificateSetupBodyCertificateNameMax = 100;
+
+
+
+export const SaveCertificateSetupBody = zod.object({
+  "certificateName": zod.string().min(1).max(saveCertificateSetupBodyCertificateNameMax).describe('Name to print on certificates.'),
+  "activeCourseSlug": zod.string().optional().describe('Slug of the course the learner picked to start with.')
+})
+
+export const SaveCertificateSetupResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string().nullish(),
+  "displayName": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "currentDay": zod.number(),
+  "xp": zod.number(),
+  "level": zod.number(),
+  "streakCount": zod.number(),
+  "streakFreezes": zod.number(),
+  "weeklyXp": zod.number(),
+  "isPublicProfile": zod.boolean(),
+  "hideFromLeaderboard": zod.boolean(),
+  "anonymousMode": zod.boolean(),
+  "emailRemindersEnabled": zod.boolean(),
+  "lastActiveDate": zod.string().nullish(),
+  "theme": zod.string(),
+  "hasPaid": zod.boolean(),
+  "isGrandfathered": zod.boolean(),
+  "hasAccess": zod.boolean().describe('True if the user can access all 28 days (paid or grandfathered).'),
+  "accessibleThroughDay": zod.number().describe('Highest day number the user can currently open (1 for free preview, 28 if entitled).'),
+  "onboardingCompleted": zod.boolean(),
+  "workContext": zod.string().nullish(),
+  "programTitle": zod.string().nullish(),
+  "programFocus": zod.string().nullish(),
+  "dailyMinutes": zod.number().describe('Target minutes the learner wants to spend per day (10, 20, or 40). Drives lesson depth and day-completion requirements.'),
+  "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
+  "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
+  "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
+  "createdAt": zod.coerce.date()
 })
 
 
@@ -402,6 +599,15 @@ export const CompleteLessonResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 }),
   "xpAwarded": zod.number(),
@@ -493,6 +699,15 @@ export const CompleteTaskResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 }),
   "xpAwarded": zod.number(),
@@ -579,6 +794,15 @@ export const SubmitPracticeResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 }),
   "xpAwarded": zod.number(),
@@ -662,6 +886,15 @@ export const SubmitQuizResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 }),
   "xpAwarded": zod.number(),
@@ -743,6 +976,15 @@ export const SubmitReflectionResponse = zod.object({
   "field": zod.string().nullish().describe('The domain the learner wants to apply AI to (e.g. marketing, engineering).'),
   "experienceLevel": zod.string().nullish().describe('Self-reported AI experience (beginner, some, advanced).'),
   "goal": zod.string().nullish(),
+  "onboardingAnswers": zod.record(zod.string(), zod.string()).nullish().describe('Raw quiz answers (step id -> selected value). Used to personalize the early daily missions toward the learner\'s first-win focus.'),
+  "aspiration": zod.string().nullish().describe('The learner\'s selected aspiration answer key from the onboarding quiz, used to personalize paywall copy for returning\/authenticated users.'),
+  "certificateName": zod.string().nullish().describe('Name the learner wants printed on course certificates.'),
+  "certOnboardingDone": zod.boolean().optional().describe('True once the learner finished the certificate\/course onboarding wizard.'),
+  "activeCourseSlug": zod.string().nullish().describe('Slug of the tool course the learner is currently working through.'),
+  "weeklyActivity": zod.array(zod.object({
+  "date": zod.string().describe('Calendar day in YYYY-MM-DD format (kept as a plain string for exact equality checks).'),
+  "active": zod.boolean()
+})).optional().describe('Activity for the current Mon–Sun week (7 entries, Monday first). Only populated by GET \/me; each entry marks whether the user was active that calendar day.'),
   "createdAt": zod.coerce.date()
 }),
   "xpAwarded": zod.number(),

@@ -10,29 +10,20 @@ import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 
+import { PaywallShell } from "@/components/paywall";
 import {
   AppText,
-  GlassCard,
   GradientButton,
-  Icon,
-  IconButton,
   IconCircle,
-  Pill,
   Screen,
 } from "@/components/ui";
 import { useColors } from "@/hooks/useColors";
+import { hapticError, hapticSuccess } from "@/lib/haptics";
+import { ASPIRATION_PHRASE } from "@/lib/quiz";
 
 WebBrowser.maybeCompleteAuthSession();
-
-const PERKS = [
-  { icon: "book" as const, text: "All 28 daily lessons unlocked" },
-  { icon: "brain" as const, text: "Hands-on tasks with AI feedback" },
-  { icon: "headphones" as const, text: "Audio versions of every lesson" },
-  { icon: "award" as const, text: "Completion certificate" },
-  { icon: "trending-up" as const, text: "Track streaks, XP & progress" },
-];
 
 function parseParams(url: string): Record<string, string> {
   const out: Record<string, string> = {};
@@ -85,6 +76,7 @@ export default function UpgradeScreen() {
       }
       const params = parseParams(result.url);
       if (!params.razorpay_payment_id) {
+        if (params.status === "failed") hapticError();
         setError(
           params.status === "failed"
             ? "Payment failed. Please try again."
@@ -102,8 +94,10 @@ export default function UpgradeScreen() {
         },
       });
       await qc.invalidateQueries({ queryKey: getGetMeQueryKey() });
+      hapticSuccess();
       router.replace("/(app)/(tabs)");
     } catch {
+      hapticError();
       setError("Something went wrong with the payment. Please try again.");
       setBusy(false);
     }
@@ -136,100 +130,27 @@ export default function UpgradeScreen() {
     );
   }
 
+  const aspirationPhrase = me?.aspiration
+    ? (ASPIRATION_PHRASE[me.aspiration] ?? null)
+    : null;
+
   return (
     <Screen padded={false}>
-      <View style={{ paddingHorizontal: 20, paddingTop: 4 }}>
-        <IconButton name="chevron-left" onPress={() => router.back()} size={38} />
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 20, paddingBottom: 24, gap: 20 }}
-      >
-        <View style={{ alignItems: "center", gap: 12 }}>
-          <IconCircle
-            name="crown"
-            size={72}
-            iconSize={32}
-            bg={c.a("accent", 0.16)}
-            color={c.accent}
-          />
-          <Pill label="Unlock full access" />
-          <AppText variant="display" style={{ textAlign: "center" }}>
-            Master AI in 28 days
+      <PaywallShell
+        eyebrow="One step from full access"
+        programTitle={me?.programTitle}
+        aspirationPhrase={aspirationPhrase}
+        ctaLabel={busy ? "Processing…" : "Unlock Full Access"}
+        onCta={onUnlock}
+        processing={busy}
+        error={error}
+        onBack={() => router.replace("/(app)/(tabs)")}
+        footer={
+          <AppText variant="caption" muted style={{ textAlign: "center", marginTop: 4 }}>
+            Secure payment via Razorpay.
           </AppText>
-          <AppText variant="body" muted style={{ textAlign: "center", maxWidth: 320 }}>
-            You've completed your free Day 1. Unlock Days 2–28 and everything the
-            program has to offer — one payment, lifetime access.
-          </AppText>
-        </View>
-
-        <GlassCard>
-          <View style={{ gap: 14 }}>
-            {PERKS.map((p) => (
-              <View
-                key={p.text}
-                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-              >
-                <IconCircle
-                  name={p.icon}
-                  size={36}
-                  iconSize={16}
-                  bg={c.a("accent", 0.14)}
-                  color={c.accent}
-                />
-                <AppText variant="bodyMedium" style={{ flex: 1 }}>
-                  {p.text}
-                </AppText>
-                <Icon name="check" size={16} color={c.accent} />
-              </View>
-            ))}
-          </View>
-        </GlassCard>
-
-        <GlassCard style={{ borderColor: c.a("accent", 0.4) }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <View>
-              <AppText variant="caption" muted uppercase>
-                One-time payment
-              </AppText>
-              <AppText variant="display" color={c.accent}>
-                ₹1,499
-              </AppText>
-            </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <AppText variant="caption" muted>
-                Lifetime access
-              </AppText>
-              <AppText variant="bodySemibold">No subscription</AppText>
-            </View>
-          </View>
-        </GlassCard>
-
-        {error ? (
-          <AppText variant="caption" color="#ef4444" style={{ textAlign: "center" }}>
-            {error}
-          </AppText>
-        ) : null}
-      </ScrollView>
-
-      <View style={{ paddingHorizontal: 20, paddingBottom: 12, gap: 8 }}>
-        <GradientButton
-          label="Unlock the full program"
-          icon="crown"
-          loading={busy}
-          onPress={onUnlock}
-        />
-        <AppText variant="caption" muted style={{ textAlign: "center" }}>
-          Secure payment via Razorpay.
-        </AppText>
-      </View>
+        }
+      />
     </Screen>
   );
 }
