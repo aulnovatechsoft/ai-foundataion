@@ -29,6 +29,26 @@ export const lessonProgress = pgTable(
   (t) => [unique("lesson_progress_user_lesson_unq").on(t.userId, t.lessonId)],
 );
 
+/** Per-user "I tried it in the real tool" marks — independent of completion. */
+export const lessonTries = pgTable(
+  "lesson_tries",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lessonId: integer("lesson_id")
+      .notNull()
+      .references(() => courseLessons.id, { onDelete: "cascade" }),
+    triedAt: timestamp("tried_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("lesson_tries_user_lesson_unq").on(t.userId, t.lessonId)],
+);
+
+export type LessonTry = typeof lessonTries.$inferSelect;
+
 export const insertLessonProgressSchema = createInsertSchema(
   lessonProgress,
 ).omit({ id: true, completedAt: true });

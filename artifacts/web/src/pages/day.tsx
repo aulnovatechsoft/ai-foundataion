@@ -36,6 +36,7 @@ import { useCelebration } from "@/providers/CelebrationProvider";
 import { GradeReveal } from "@/components/GradeReveal";
 import { motion, AnimatePresence } from "framer-motion";
 import { normalizePace, isRequired, requiredSections, PACE_LABEL, PACE_SUMMARY, shuffle, type PaceSection } from "@/lib/pace";
+import { playCorrect, playWrong } from "@/lib/chatSounds";
 import { fieldLens, experienceNote, firstWinFocus, FIRST_WEEK_THROUGH_DAY } from "@/lib/personalization";
 
 const TOTAL_DAYS = 28;
@@ -230,6 +231,7 @@ function DayContent({ day }: { day: number }) {
     const answersArray = detail.quiz.map(q => quizAnswers[q.id] ?? 0);
     submitQuiz.mutate({ day, data: { answers: answersArray } }, { 
       onSuccess: (data) => {
+        if (data.passed) playCorrect(); else playWrong();
         setLocalCorrectIndexes(data.correctIndexes);
         setQuizPassed(data.passed);
         handleCelebrations(data, e);

@@ -7,9 +7,19 @@
  */
 
 export * from './achievement';
+export * from './cardAudio';
+export * from './cardAudioInput';
+export * from './cardAudioSentence';
 export * from './certificate';
 export * from './certificateInput';
 export * from './certificateSetupInput';
+export * from './chatFeedback';
+export * from './chatFeedbackInput';
+export * from './chatFeedbackSource';
+export * from './chatTurn';
+export * from './chatTurnInputType';
+export * from './chatTurnPairs';
+export * from './chatTurnVideo';
 export * from './completeLessonResult';
 export * from './courseDetail';
 export * from './courseLessonDetail';
@@ -30,6 +40,8 @@ export * from './leaderboardEntry';
 export * from './lessonAudio';
 export * from './lessonQuestion';
 export * from './lessonStep';
+export * from './lessonTryIt';
+export * from './markLessonTriedResult';
 export * from './me';
 export * from './meOnboardingAnswers';
 export * from './meUpdate';

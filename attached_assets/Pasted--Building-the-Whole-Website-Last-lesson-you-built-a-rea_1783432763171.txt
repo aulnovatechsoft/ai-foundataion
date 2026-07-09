@@ -1,0 +1,154 @@
+
+Building the Whole Website
+Last lesson, you built a real homepage from a single Instagram bio and learned the rhythm of working with Claude Code: describe, review, refine. That homepage is the front door to something bigger.
+
+In this lesson, you'll set up the controls that shape how Claude works, then plan and build the rest of your site around it.
+
+Three Dials That Shape the Work
+Before you take on bigger work, let's focus on the three settings in the app:
+Which version of Claude does the work?
+How hard does it think?
+How much does it check with you before acting?
+Each one changes how a build goes. Here's what they do and how to set them.
+Choosing the Model
+From a menu near the prompt box, you choose which model performs the work. They trade off power against speed and cost: the most capable one thinks hardest but uses the most of your usage, while lighter versions are faster and cheaper.
+Match it to the job:
+A lighter version — Haiku — for quick and basic tasks.
+The medium version — Sonnet — for routine pages.
+The most capable one — Opus — for genuinely tricky work.
+
+Effort sets how much Claude thinks before acting, but more isn't always better. The app offers a range, from quick and direct to deep and deliberate.
+Higher effort suits a complex build.
+The lowest is right for a small edit, where extra thinking just costs time and usage.
+A middle setting handles most work.
+Working Within Your Limits
+Your plan includes a set amount of usage that refills on a schedule, and Claude Code draws from the same pool as the regular Claude app. Heavier models and longer sessions use it up faster.
+💡 Make Your Usage Last
+A few habits keep you from hitting your limit too soon:
+Match the model to the job: Save the most capable one for hard problems; a lighter model handles routine pages fine.
+Start a fresh session for a new task: Every message re-reads the whole conversation, so a long one quietly costs more.
+Don't overthink small jobs: High effort on a tiny edit just burns usage for no gain.
+The Permission Mode
+With usage under control, the next setting is the permission mode, which sets how much Claude does on its own, and you pick it from the selector at the bottom-left of the prompt box.
+"Ask permissions" pauses for your okay before each change — the behavior from last lesson.
+"Accept edits" makes changes without stopping.
+Plan mode reads and plans without building anything.
+
+There's also Auto mode. "Ask permissions" is the safest choice, but on a long build, it means clicking through dozens of approvals you'd have said yes to anyway. Auto mode runs straight through, with a background safety check that pauses only when something looks risky.
+completed check
+Task completed
+Match the Mode to the Moment
+Match each permission mode to when you'd reach for it.
+
+completed check
+Task completed
+Pick the Mode
+Choose the right mode for the moment.
+
+Building the Website
+Now, as you've gotten familiar with how to set the controls — effort and the permission mode — let's keep building your website!
+
+Right now, it is a single homepage. What you need is a set of pages that link together into a real site.
+
+When to Plan, When to Just Ask
+Last lesson, you made small, targeted changes by asking for them one at a time — and for a quick fix, that's still the fastest way.
+
+Building a whole multi-page website means keeping many pieces aligned at once. Navigation, page structure, content, and design all need to stay consistent. Without a plan, information gets repeated, pages contradict each other, and gaps start to appear.
+
+So you'll work in two gears: plan the whole structure once, then refine it piece by piece.
+Planning the Whole Site
+This is what Plan mode is for: working out how to build something before any code is written. You switch the selector to Plan mode and ask how to approach the site you want to build.
+
+Claude reads your folder, asks whatever it needs to, and proposes a plan: the pages, how they fit together, and the order in which to build them.
+What the Plan Covers
+A good plan is how your pages connect, what each one does, and where to start. It helps to know roughly what you want first, so you can tell whether Claude's approach is right.
+
+So before you ask, picture the pages your bakery needs.
+
+A Clear Plan Request
+While staying in the same chat as your homepage, switch to Plan mode, and ask. Claude already knows your folder, your bakery, and the style you've established — you don't need to re-explain.
+
+The clearer your request, the better the plan. Name what the site needs and state the limits.
+completed check
+Task completed
+Ask for a Plan
+Complete the request so that Claude can plan the right approach.
+
+A Plan, Not a Build
+Claude answers your questions and lays out its approach: the pages, how they link, and where it'll start. And your folder is still untouched, which makes this the cheapest moment to get it right.
+
+Read it through carefully: is anything missing, doubled, or out of order?
+Claude's plan puts the order form at the bottom of your website's Menu page, but you'd asked for Order to be its own page. What should you do?
+
+Start the whole plan over from scratch
+
+Ask Claude to give Order its own page, then approve
+
+Approve it. One less page is simpler
+Incorrect answer
+Approving as-is buries ordering under the menu, mixing browsing with buying — the very thing you wanted to avoid. And there's no need to restart; one small fix to the plan handles it.
+
+Approve, and It Builds
+When the plan doesn't sound right to you, you revise it. Click "revise", and tell Claude what is off. Claude rewrites the plan, you read the new version, and keep going.
+
+When the plan looks right, you accept it. Claude leaves Plan mode and builds all the pages at once — writing the files, linking them with navigation, and dropping in starter copy.
+
+
+A Foundation, Not the Finish
+What you have now is the skeleton: every page in place, linked together, with placeholder copy standing in. It's not finished, and it's not meant to be.
+
+From here, you go back to working in small steps, refining one piece at a time, the way you did with your homepage.
+Your five pages are built and linked, with placeholder text throughout. What's the right next move?
+
+It's done — there's nothing left to do
+
+Re-plan the whole site again from scratch
+
+Refine one page at a time with targeted changes
+Incorrect answer
+Re-planning the whole site would throw away a structure that's already right. The plan-it-all step is done; now it's about refining the pieces individually.
+
+Pointing Claude at a File
+Take your About page: Claude wrote a placeholder story, but your real story sits in a notes file in the project folder on your computer. Rather than copy-pasting it, type "@" followed by the file's name to pull it into the chat, then ask Claude to use it.
+
+That's a mention — a quick way to point Claude at one specific file.
+completed check
+Task completed
+One Small Fix
+Complete the request to make a single, targeted change.
+
+Here's What You Got
+This is what your About page looks like after targeted change.
+
+From Your Folder to the Internet
+Your site works in the preview, but it only lives on your computer. It's time to make it live!
+
+To share it, you need to publish it via the host. A host stores your files and serves them to visitors when they open the URL. For a small site like yours, free hosts are plenty:
+Netlify
+Vercel
+GitHub Pages, etc.
+You can also use the paid ones, which are commonly used for bigger sites or custom domains — unique website addresses.
+Publishing Your Site
+Right now, you publish manually — Claude prepares the files, and you upload them. Here's the path with Netlify, which makes it as easy as it gets:
+Go to netlify.com and create a free account.
+On your Netlify dashboard, find the "Add your project" option and choose "Deploy manually."
+Drag your project folder into the upload area. Netlify uploads the files and hands you a live URL.
+
+That URL works on any device. When you change something, drag the folder in again to update the live site.
+
+Later in the course, you'll set up a connector that lets Claude do all of this for you — one ask, and the site goes live or updates.
+Key Takeaways
+Three dials shape how Claude works: the model (which version), effort (how hard it thinks), and the permission mode (how much it checks with you).
+Match the model and effort to the job to keep your usage from running out too soon.
+Plan mode is for deciding how to build before any file changes. You review and correct the approach, then approve, and what you get is a structure to refine from there.
+Refine one piece at a time after the big build. The big structural work is done in the plan; everything after is small, targeted changes.
+Point Claude at a specific file with an "@" mention to bring it into the chat.
+Publish your site to share it. Drag your folder into a free host like Netlify, and re-upload whenever you make a visible change.
+What's Next?
+Nice work! Your bakery went from one page to a connected, multi-page site.
+
+So far, you've been building websites — pages that sit and wait for visitors. Next, you'll cross into apps: things that hold data, respond to you, and grow feature-by-feature.
+
+Same Claude Code, different kind of work. Let's keep going!
+
+

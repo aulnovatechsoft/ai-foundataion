@@ -93,7 +93,7 @@ function DashboardContent() {
                     <h2 className="text-3xl font-bold font-heading mb-2">{activeCourse.title}</h2>
                     <p className="text-[hsl(var(--text-muted))] mb-6">{activeCourse.tagline}</p>
                     <div className="flex flex-col sm:flex-row items-center gap-4">
-                      <Link href={`/course/${activeCourse.slug}/learn`}>
+                      <Link href={`/course/${activeCourse.slug}`}>
                         <Button className="h-12 px-8 text-base text-white rounded-full font-bold shadow-lg hover:opacity-90" style={{ backgroundColor: activeCourse.accent }}>
                           <Play className="w-5 h-5 mr-2 fill-current" /> Continue Learning
                         </Button>

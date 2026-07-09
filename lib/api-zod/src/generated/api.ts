@@ -386,8 +386,36 @@ export const GetCourseResponse = zod.object({
   "options": zod.array(zod.string()),
   "correctIndex": zod.number(),
   "explanation": zod.string()
-}),zod.null()]).optional()
-}))
+}),zod.null()]).optional(),
+  "chat": zod.union([zod.array(zod.object({
+  "bot": zod.string().describe('Message the coach bot sends for this turn.'),
+  "ask": zod.string().nullish().describe('Question the learner must answer before the conversation continues.'),
+  "inputType": zod.union([zod.literal('choice'),zod.literal('text'),zod.literal('fill-blank'),zod.literal('arrange'),zod.literal('match'),zod.literal('binary'),zod.literal(null)]).nullish(),
+  "options": zod.union([zod.array(zod.string()),zod.null()]).optional(),
+  "correctIndex": zod.number().nullish(),
+  "template": zod.string().nullish().describe('For fill-blank — sentence containing a ___ gap the learner fills with an option chip.'),
+  "words": zod.union([zod.array(zod.string()),zod.null()]).optional().describe('For arrange — words in correct order; the UI shuffles them for the learner to rebuild.'),
+  "pairs": zod.union([zod.array(zod.object({
+  "left": zod.string(),
+  "right": zod.string()
+})),zod.null()]).optional().describe('For match — pairs the learner must connect; the UI shuffles the right column.'),
+  "keywords": zod.union([zod.array(zod.string()),zod.null()]).optional().describe('For text answers — a good answer mentions at least one of these.'),
+  "gapAnswers": zod.union([zod.array(zod.string()),zod.null()]).optional().describe('For multi-gap fill-blank — correct chip text for each ___ gap in template, in order. When present, options is the chip pool (answers plus distractors).'),
+  "video": zod.union([zod.object({
+  "url": zod.string().describe('URL of the video clip to play after this turn is answered (or immediately for bot-only turns).'),
+  "caption": zod.string().nullish()
+}),zod.null()]).optional().describe('Simulated generation result — after the learner answers correctly, the UI shows a generating animation, then plays this clip.'),
+  "feedback": zod.string().nullish().describe('Scripted feedback shown after the learner answers.'),
+  "hint": zod.string().nullish()
+})),zod.null()]).optional().describe('Optional interactive chat session — a scripted conversation the learner completes turn by turn.')
+})),
+  "tryIt": zod.object({
+  "tool": zod.string().describe('Display name of the real tool (e.g. \"ChatGPT\").'),
+  "url": zod.string().describe('Link to open the real tool.'),
+  "prompt": zod.string().describe('Copy-ready prompt tailored to this lesson.'),
+  "note": zod.string().optional().describe('Optional short tip shown under the prompt.')
+}).optional().describe('A real-world action step — a copy-ready prompt to try in the actual tool.'),
+  "tried": zod.boolean().describe('Whether the current user marked this lesson\'s real-tool prompt as tried.')
 }))
 }))
 }))
@@ -411,6 +439,20 @@ export const CompleteCourseLessonResponse = zod.object({
 
 
 /**
+ * @summary Mark that the learner tried this lesson's prompt in the real tool (idempotent)
+ */
+export const MarkLessonTriedParams = zod.object({
+  "lessonId": zod.coerce.number()
+})
+
+export const MarkLessonTriedResponse = zod.object({
+  "lessonId": zod.number(),
+  "tried": zod.boolean(),
+  "alreadyTried": zod.boolean()
+})
+
+
+/**
  * Generates TTS narration once per lesson and caches it; subsequent calls return the cached audio URL.
  * @summary Generate (or fetch cached) audio narration for a lesson
  */
@@ -421,6 +463,57 @@ export const GenerateLessonAudioParams = zod.object({
 export const GenerateLessonAudioResponse = zod.object({
   "audioUrl": zod.string(),
   "durationSec": zod.number().nullable()
+})
+
+
+/**
+ * Generates per-sentence TTS for a card's sentences, returning a stitched audio file plus sentence-level start/end timestamps for transcript sync. Cached by content hash.
+ * @summary Generate (or fetch cached) synced narration for one lesson card
+ */
+export const GenerateCardAudioParams = zod.object({
+  "lessonId": zod.coerce.number()
+})
+
+export const generateCardAudioBodySentencesItemMax = 1000;
+
+export const generateCardAudioBodySentencesMax = 60;
+
+
+
+export const GenerateCardAudioBody = zod.object({
+  "sentences": zod.array(zod.string().min(1).max(generateCardAudioBodySentencesItemMax)).min(1).max(generateCardAudioBodySentencesMax)
+})
+
+export const GenerateCardAudioResponse = zod.object({
+  "audioUrl": zod.string(),
+  "durationSec": zod.number(),
+  "sentences": zod.array(zod.object({
+  "id": zod.number(),
+  "text": zod.string(),
+  "startTime": zod.number(),
+  "endTime": zod.number()
+}))
+})
+
+
+/**
+ * Uses AI to coach the learner's free-text answer when available, falling back to scripted keyword feedback.
+ * @summary Get feedback on a learner's typed answer in an interactive chat lesson
+ */
+export const GetChatFeedbackParams = zod.object({
+  "lessonId": zod.coerce.number()
+})
+
+export const GetChatFeedbackBody = zod.object({
+  "stepIdx": zod.number(),
+  "turnIdx": zod.number(),
+  "answer": zod.string()
+})
+
+export const GetChatFeedbackResponse = zod.object({
+  "feedback": zod.string(),
+  "good": zod.boolean(),
+  "source": zod.enum(['ai', 'scripted'])
 })
 
 

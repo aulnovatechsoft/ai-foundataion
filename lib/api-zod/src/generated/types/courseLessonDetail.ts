@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { LessonStep } from './lessonStep';
+import type { LessonTryIt } from './lessonTryIt';
 
 export interface CourseLessonDetail {
   id: number;
@@ -23,4 +24,7 @@ export interface CourseLessonDetail {
   /** @nullable */
   imageUrl?: string | null;
   steps: LessonStep[];
+  tryIt?: LessonTryIt;
+  /** Whether the current user marked this lesson's real-tool prompt as tried. */
+  tried: boolean;
 }

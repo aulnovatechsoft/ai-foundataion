@@ -1,0 +1,171 @@
+The narrator should sound like an experienced online course instructor.
+
+Voice should be:
+
+• Warm
+• Friendly
+• Professional
+• Calm
+• Confident
+• Conversational
+• Clear pronunciation
+• Neutral accent
+• Human breathing
+• Natural pauses
+• Expressive but not overly dramatic
+
+Avoid robotic speech.
+
+-----------------------------------
+READING STYLE
+-----------------------------------
+
+The narration should not read every sentence at the same speed.
+
+Instead:
+
+Slow down slightly when introducing new concepts.
+
+Pause naturally after:
+
+•
+•
+:
+;
+?
+!
+
+Add emphasis to:
+
+Bold words
+
+Important concepts
+
+Definitions
+
+Examples
+
+Lists
+
+Questions
+
+Speak naturally like a real teacher.
+
+-----------------------------------
+SMART PAUSES
+-----------------------------------
+
+Insert intelligent pauses automatically.
+
+Example:
+
+"ChatGPT is a Large Language Model."
+
+Pause 400ms.
+
+"It generates new responses..."
+
+Pause 500ms.
+
+Questions should pause longer before continuing.
+
+-----------------------------------
+PRONUNCIATION
+-----------------------------------
+
+Correctly pronounce technical words.
+
+Examples:
+
+ChatGPT
+
+OpenAI
+
+API
+
+JSON
+
+JavaScript
+
+Python
+
+Machine Learning
+
+Artificial Intelligence
+
+Large Language Model
+
+LLM
+
+Avoid spelling letters unnaturally.
+
+-----------------------------------
+AUDIO QUALITY
+-----------------------------------
+
+Generate audio as
+
+48kHz
+
+High bitrate
+
+MP3 or AAC
+
+No clipping
+
+No background noise
+
+Smooth fade in/out
+
+Normalize loudness
+
+-----------------------------------
+PRE-GENERATE AUDIO
+-----------------------------------
+
+Do NOT generate audio every time the page opens.
+
+Instead:
+
+Generate lesson narration once.
+
+Store audio on the server/CDN.
+
+Cache locally.
+
+Reuse on future plays.
+
+Playback should start instantly.
+
+-----------------------------------
+SENTENCE TIMESTAMPS
+-----------------------------------
+
+Each generated audio file should include timestamp metadata.
+
+Example
+
+Sentence 1
+0.0 → 3.4
+
+Sentence 2
+3.4 → 6.7
+
+Sentence 3
+6.7 → 10.9
+
+Use these timestamps to synchronize transcript highlighting.
+
+-----------------------------------
+BUFFERING
+-----------------------------------
+
+When user opens lesson:
+
+Load audio in background.
+
+Display loading animation only if necessary.
+
+Playback should start within 300ms.
+
+No noticeable delay.
