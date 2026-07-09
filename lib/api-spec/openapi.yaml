@@ -336,6 +336,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /courses/lessons/{lessonId}/try:
+    post:
+      operationId: markLessonTried
+      tags: [courses]
+      summary: Mark that the learner tried this lesson's prompt in the real tool (idempotent)
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Try-it status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarkLessonTriedResult"
+        "404":
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /courses/lessons/{lessonId}/audio:
     post:
       operationId: generateLessonAudio
@@ -355,6 +379,68 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LessonAudio"
+        "404":
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /courses/lessons/{lessonId}/card-audio:
+    post:
+      operationId: generateCardAudio
+      tags: [courses]
+      summary: Generate (or fetch cached) synced narration for one lesson card
+      description: Generates per-sentence TTS for a card's sentences, returning a stitched audio file plus sentence-level start/end timestamps for transcript sync. Cached by content hash.
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardAudioInput"
+      responses:
+        "200":
+          description: Synced audio ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CardAudio"
+        "404":
+          description: Lesson not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /courses/lessons/{lessonId}/chat-feedback:
+    post:
+      operationId: getChatFeedback
+      tags: [courses]
+      summary: Get feedback on a learner's typed answer in an interactive chat lesson
+      description: Uses AI to coach the learner's free-text answer when available, falling back to scripted keyword feedback.
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatFeedbackInput"
+      responses:
+        "200":
+          description: Feedback
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatFeedback"
         "404":
           description: Lesson not found
           content:
@@ -1543,6 +1629,50 @@ components:
       required:
         - audioUrl
         - durationSec
+    CardAudioInput:
+      type: object
+      properties:
+        sentences:
+          type: array
+          minItems: 1
+          maxItems: 60
+          items:
+            type: string
+            minLength: 1
+            maxLength: 1000
+      required:
+        - sentences
+    CardAudioSentence:
+      type: object
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        startTime:
+          type: number
+        endTime:
+          type: number
+      required:
+        - id
+        - text
+        - startTime
+        - endTime
+    CardAudio:
+      type: object
+      properties:
+        audioUrl:
+          type: string
+        durationSec:
+          type: number
+        sentences:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardAudioSentence"
+      required:
+        - audioUrl
+        - durationSec
+        - sentences
     LessonQuestion:
       type: object
       properties:
@@ -1570,8 +1700,118 @@ components:
           oneOf:
             - $ref: "#/components/schemas/LessonQuestion"
             - type: "null"
+        chat:
+          description: Optional interactive chat session — a scripted conversation the learner completes turn by turn.
+          oneOf:
+            - type: array
+              items:
+                $ref: "#/components/schemas/ChatTurn"
+            - type: "null"
       required:
         - html
+    ChatTurn:
+      type: object
+      properties:
+        bot:
+          type: string
+          description: Message the coach bot sends for this turn.
+        ask:
+          type: ["string", "null"]
+          description: Question the learner must answer before the conversation continues.
+        inputType:
+          type: ["string", "null"]
+          enum: [choice, text, fill-blank, arrange, match, binary, null]
+        options:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        correctIndex:
+          type: ["integer", "null"]
+        template:
+          type: ["string", "null"]
+          description: For fill-blank — sentence containing a ___ gap the learner fills with an option chip.
+        words:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+          description: For arrange — words in correct order; the UI shuffles them for the learner to rebuild.
+        pairs:
+          oneOf:
+            - type: array
+              items:
+                type: object
+                properties:
+                  left:
+                    type: string
+                  right:
+                    type: string
+                required: [left, right]
+            - type: "null"
+          description: For match — pairs the learner must connect; the UI shuffles the right column.
+        keywords:
+          description: For text answers — a good answer mentions at least one of these.
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+        gapAnswers:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
+          description: For multi-gap fill-blank — correct chip text for each ___ gap in template, in order. When present, options is the chip pool (answers plus distractors).
+        video:
+          oneOf:
+            - type: object
+              properties:
+                url:
+                  type: string
+                  description: URL of the video clip to play after this turn is answered (or immediately for bot-only turns).
+                caption:
+                  type: ["string", "null"]
+              required: [url]
+            - type: "null"
+          description: Simulated generation result — after the learner answers correctly, the UI shows a generating animation, then plays this clip.
+        feedback:
+          type: ["string", "null"]
+          description: Scripted feedback shown after the learner answers.
+        hint:
+          type: ["string", "null"]
+      required:
+        - bot
+    ChatFeedbackInput:
+      type: object
+      properties:
+        stepIdx:
+          type: integer
+        turnIdx:
+          type: integer
+        answer:
+          type: string
+      required:
+        - stepIdx
+        - turnIdx
+        - answer
+    ChatFeedback:
+      type: object
+      properties:
+        feedback:
+          type: string
+        good:
+          type: boolean
+        source:
+          type: string
+          enum: [ai, scripted]
+      required:
+        - feedback
+        - good
+        - source
     CourseSummary:
       type: object
       properties:
@@ -1639,6 +1879,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/LessonStep"
+        tryIt:
+          $ref: "#/components/schemas/LessonTryIt"
+        tried:
+          type: boolean
+          description: Whether the current user marked this lesson's real-tool prompt as tried.
       required:
         - id
         - unitId
@@ -1649,6 +1894,40 @@ components:
         - sortOrder
         - completed
         - steps
+        - tried
+    LessonTryIt:
+      type: object
+      description: A real-world action step — a copy-ready prompt to try in the actual tool.
+      properties:
+        tool:
+          type: string
+          description: Display name of the real tool (e.g. "ChatGPT").
+        url:
+          type: string
+          description: Link to open the real tool.
+        prompt:
+          type: string
+          description: Copy-ready prompt tailored to this lesson.
+        note:
+          type: string
+          description: Optional short tip shown under the prompt.
+      required:
+        - tool
+        - url
+        - prompt
+    MarkLessonTriedResult:
+      type: object
+      properties:
+        lessonId:
+          type: integer
+        tried:
+          type: boolean
+        alreadyTried:
+          type: boolean
+      required:
+        - lessonId
+        - tried
+        - alreadyTried
     CourseUnitDetail:
       type: object
       properties:

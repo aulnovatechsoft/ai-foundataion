@@ -21,9 +21,13 @@ import type {
 
 import type {
   Achievement,
+  CardAudio,
+  CardAudioInput,
   Certificate,
   CertificateInput,
   CertificateSetupInput,
+  ChatFeedback,
+  ChatFeedbackInput,
   CompleteLessonResult,
   CourseDetail,
   CourseSummary,
@@ -36,6 +40,7 @@ import type {
   HealthStatus,
   Leaderboard,
   LessonAudio,
+  MarkLessonTriedResult,
   Me,
   MeUpdate,
   OnboardingInput,
@@ -1121,6 +1126,76 @@ export const useCompleteCourseLesson = <TError = ErrorType<Error>,
       return useMutation(getCompleteCourseLessonMutationOptions(options));
     }
 
+export const getMarkLessonTriedUrl = (lessonId: number,) => {
+
+
+
+
+  return `/api/courses/lessons/${lessonId}/try`
+}
+
+/**
+ * @summary Mark that the learner tried this lesson's prompt in the real tool (idempotent)
+ */
+export const markLessonTried = async (lessonId: number, options?: RequestInit): Promise<MarkLessonTriedResult> => {
+
+  return customFetch<MarkLessonTriedResult>(getMarkLessonTriedUrl(lessonId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getMarkLessonTriedMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markLessonTried>>, TError,{lessonId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markLessonTried>>, TError,{lessonId: number}, TContext> => {
+
+const mutationKey = ['markLessonTried'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markLessonTried>>, {lessonId: number}> = (props) => {
+          const {lessonId} = props ?? {};
+
+          return  markLessonTried(lessonId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkLessonTriedMutationResult = NonNullable<Awaited<ReturnType<typeof markLessonTried>>>
+
+    export type MarkLessonTriedMutationError = ErrorType<Error>
+
+    /**
+ * @summary Mark that the learner tried this lesson's prompt in the real tool (idempotent)
+ */
+export const useMarkLessonTried = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markLessonTried>>, TError,{lessonId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markLessonTried>>,
+        TError,
+        {lessonId: number},
+        TContext
+      > => {
+      return useMutation(getMarkLessonTriedMutationOptions(options));
+    }
+
 export const getGenerateLessonAudioUrl = (lessonId: number,) => {
 
 
@@ -1190,6 +1265,150 @@ export const useGenerateLessonAudio = <TError = ErrorType<Error>,
         TContext
       > => {
       return useMutation(getGenerateLessonAudioMutationOptions(options));
+    }
+
+export const getGenerateCardAudioUrl = (lessonId: number,) => {
+
+
+
+
+  return `/api/courses/lessons/${lessonId}/card-audio`
+}
+
+/**
+ * Generates per-sentence TTS for a card's sentences, returning a stitched audio file plus sentence-level start/end timestamps for transcript sync. Cached by content hash.
+ * @summary Generate (or fetch cached) synced narration for one lesson card
+ */
+export const generateCardAudio = async (lessonId: number,
+    cardAudioInput: CardAudioInput, options?: RequestInit): Promise<CardAudio> => {
+
+  return customFetch<CardAudio>(getGenerateCardAudioUrl(lessonId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(cardAudioInput)
+  }
+);}
+
+
+
+
+export const getGenerateCardAudioMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateCardAudio>>, TError,{lessonId: number;data: BodyType<CardAudioInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateCardAudio>>, TError,{lessonId: number;data: BodyType<CardAudioInput>}, TContext> => {
+
+const mutationKey = ['generateCardAudio'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateCardAudio>>, {lessonId: number;data: BodyType<CardAudioInput>}> = (props) => {
+          const {lessonId,data} = props ?? {};
+
+          return  generateCardAudio(lessonId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateCardAudioMutationResult = NonNullable<Awaited<ReturnType<typeof generateCardAudio>>>
+    export type GenerateCardAudioMutationBody = BodyType<CardAudioInput>
+    export type GenerateCardAudioMutationError = ErrorType<Error>
+
+    /**
+ * @summary Generate (or fetch cached) synced narration for one lesson card
+ */
+export const useGenerateCardAudio = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateCardAudio>>, TError,{lessonId: number;data: BodyType<CardAudioInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateCardAudio>>,
+        TError,
+        {lessonId: number;data: BodyType<CardAudioInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateCardAudioMutationOptions(options));
+    }
+
+export const getGetChatFeedbackUrl = (lessonId: number,) => {
+
+
+
+
+  return `/api/courses/lessons/${lessonId}/chat-feedback`
+}
+
+/**
+ * Uses AI to coach the learner's free-text answer when available, falling back to scripted keyword feedback.
+ * @summary Get feedback on a learner's typed answer in an interactive chat lesson
+ */
+export const getChatFeedback = async (lessonId: number,
+    chatFeedbackInput: ChatFeedbackInput, options?: RequestInit): Promise<ChatFeedback> => {
+
+  return customFetch<ChatFeedback>(getGetChatFeedbackUrl(lessonId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(chatFeedbackInput)
+  }
+);}
+
+
+
+
+export const getGetChatFeedbackMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getChatFeedback>>, TError,{lessonId: number;data: BodyType<ChatFeedbackInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof getChatFeedback>>, TError,{lessonId: number;data: BodyType<ChatFeedbackInput>}, TContext> => {
+
+const mutationKey = ['getChatFeedback'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getChatFeedback>>, {lessonId: number;data: BodyType<ChatFeedbackInput>}> = (props) => {
+          const {lessonId,data} = props ?? {};
+
+          return  getChatFeedback(lessonId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GetChatFeedbackMutationResult = NonNullable<Awaited<ReturnType<typeof getChatFeedback>>>
+    export type GetChatFeedbackMutationBody = BodyType<ChatFeedbackInput>
+    export type GetChatFeedbackMutationError = ErrorType<Error>
+
+    /**
+ * @summary Get feedback on a learner's typed answer in an interactive chat lesson
+ */
+export const useGetChatFeedback = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getChatFeedback>>, TError,{lessonId: number;data: BodyType<ChatFeedbackInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof getChatFeedback>>,
+        TError,
+        {lessonId: number;data: BodyType<ChatFeedbackInput>},
+        TContext
+      > => {
+      return useMutation(getGetChatFeedbackMutationOptions(options));
     }
 
 export const getSaveCertificateSetupUrl = () => {

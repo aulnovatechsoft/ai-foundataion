@@ -6,18 +6,32 @@ import {
   courseLessons,
 } from "@workspace/db";
 
+import { CANVA_AI_COURSE } from "./course-content/canva-ai";
 import { CHATGPT_COURSE } from "./course-content/chatgpt";
+import { CHATGPT_DEEP_DIVE_COURSE } from "./course-content/chatgpt-deep-dive";
 import { CLAUDE_COURSE } from "./course-content/claude";
+import { CLAUDE_CODE_COURSE } from "./course-content/claude-code";
 import { GEMINI_COURSE } from "./course-content/gemini";
+import { KLING_COURSE } from "./course-content/kling";
+import { LOVABLE_COURSE } from "./course-content/lovable";
 import { MIDJOURNEY_COURSE } from "./course-content/midjourney";
+import { PERPLEXITY_COURSE } from "./course-content/perplexity";
+import { communicatingWithAiCourse } from "./course-content/communicating-with-ai";
 import { LESSON_QUESTIONS } from "./course-content/questions";
 import type { CourseSeed } from "./course-content/types";
 
 const ALL_COURSES: CourseSeed[] = [
   CHATGPT_COURSE,
+  CHATGPT_DEEP_DIVE_COURSE,
   CLAUDE_COURSE,
   GEMINI_COURSE,
   MIDJOURNEY_COURSE,
+  KLING_COURSE,
+  CANVA_AI_COURSE,
+  LOVABLE_COURSE,
+  PERPLEXITY_COURSE,
+  CLAUDE_CODE_COURSE,
+  communicatingWithAiCourse,
 ];
 
 async function seed() {
@@ -66,6 +80,7 @@ async function seed() {
           estimatedMinutes: l.estimatedMinutes ?? 10,
           sortOrder: lessonOrder,
           imageUrl: `/lesson-art/${c.slug}-${lessonOrder}.png`,
+          tryIt: l.tryIt ?? null,
           steps,
         });
       }

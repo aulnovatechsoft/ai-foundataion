@@ -335,6 +335,29 @@ export interface DayAudio {
   durationSec: number | null;
 }
 
+export interface CardAudioInput {
+  /**
+     * @minItems 1
+     * @maxItems 60
+     * @items.minLength 1
+     * @items.maxLength 1000
+     */
+  sentences: string[];
+}
+
+export interface CardAudioSentence {
+  id: number;
+  text: string;
+  startTime: number;
+  endTime: number;
+}
+
+export interface CardAudio {
+  audioUrl: string;
+  durationSec: number;
+  sentences: CardAudioSentence[];
+}
+
 export interface LessonQuestion {
   text: string;
   options: string[];
@@ -342,9 +365,101 @@ export interface LessonQuestion {
   explanation: string;
 }
 
+/**
+ * @nullable
+ */
+export type ChatTurnInputType = typeof ChatTurnInputType[keyof typeof ChatTurnInputType] | null;
+
+
+export const ChatTurnInputType = {
+  choice: 'choice',
+  text: 'text',
+  'fill-blank': 'fill-blank',
+  arrange: 'arrange',
+  match: 'match',
+  binary: 'binary',
+} as const;
+
+/**
+ * For match — pairs the learner must connect; the UI shuffles the right column.
+ */
+export type ChatTurnPairs = {
+  left: string;
+  right: string;
+}[] | null;
+
+/**
+ * Simulated generation result — after the learner answers correctly, the UI shows a generating animation, then plays this clip.
+ */
+export type ChatTurnVideo = {
+  /** URL of the video clip to play after this turn is answered (or immediately for bot-only turns). */
+  url: string;
+  /** @nullable */
+  caption?: string | null;
+} | null;
+
+export interface ChatTurn {
+  /** Message the coach bot sends for this turn. */
+  bot: string;
+  /**
+     * Question the learner must answer before the conversation continues.
+     * @nullable
+     */
+  ask?: string | null;
+  /** @nullable */
+  inputType?: ChatTurnInputType;
+  options?: string[] | null;
+  /** @nullable */
+  correctIndex?: number | null;
+  /**
+     * For fill-blank — sentence containing a ___ gap the learner fills with an option chip.
+     * @nullable
+     */
+  template?: string | null;
+  /** For arrange — words in correct order; the UI shuffles them for the learner to rebuild. */
+  words?: string[] | null;
+  /** For match — pairs the learner must connect; the UI shuffles the right column. */
+  pairs?: ChatTurnPairs;
+  /** For text answers — a good answer mentions at least one of these. */
+  keywords?: string[] | null;
+  /** For multi-gap fill-blank — correct chip text for each ___ gap in template, in order. When present, options is the chip pool (answers plus distractors). */
+  gapAnswers?: string[] | null;
+  /** Simulated generation result — after the learner answers correctly, the UI shows a generating animation, then plays this clip. */
+  video?: ChatTurnVideo;
+  /**
+     * Scripted feedback shown after the learner answers.
+     * @nullable
+     */
+  feedback?: string | null;
+  /** @nullable */
+  hint?: string | null;
+}
+
 export interface LessonStep {
   html: string;
   question?: LessonQuestion | null;
+  /** Optional interactive chat session — a scripted conversation the learner completes turn by turn. */
+  chat?: ChatTurn[] | null;
+}
+
+export interface ChatFeedbackInput {
+  stepIdx: number;
+  turnIdx: number;
+  answer: string;
+}
+
+export type ChatFeedbackSource = typeof ChatFeedbackSource[keyof typeof ChatFeedbackSource];
+
+
+export const ChatFeedbackSource = {
+  ai: 'ai',
+  scripted: 'scripted',
+} as const;
+
+export interface ChatFeedback {
+  feedback: string;
+  good: boolean;
+  source: ChatFeedbackSource;
 }
 
 export interface CourseSummary {
@@ -360,6 +475,20 @@ export interface CourseSummary {
   lessonCount: number;
   /** Lessons the current user has completed in this course. */
   completedCount: number;
+}
+
+/**
+ * A real-world action step — a copy-ready prompt to try in the actual tool.
+ */
+export interface LessonTryIt {
+  /** Display name of the real tool (e.g. "ChatGPT"). */
+  tool: string;
+  /** Link to open the real tool. */
+  url: string;
+  /** Copy-ready prompt tailored to this lesson. */
+  prompt: string;
+  /** Optional short tip shown under the prompt. */
+  note?: string;
 }
 
 export interface CourseLessonDetail {
@@ -378,6 +507,15 @@ export interface CourseLessonDetail {
   /** @nullable */
   imageUrl?: string | null;
   steps: LessonStep[];
+  tryIt?: LessonTryIt;
+  /** Whether the current user marked this lesson's real-tool prompt as tried. */
+  tried: boolean;
+}
+
+export interface MarkLessonTriedResult {
+  lessonId: number;
+  tried: boolean;
+  alreadyTried: boolean;
 }
 
 export interface CourseUnitDetail {

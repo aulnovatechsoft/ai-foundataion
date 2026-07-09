@@ -47,6 +47,13 @@ export const courseLessons = pgTable("course_lessons", {
   imageUrl: text("image_url"), // lesson hero illustration (served from web /public)
   // Ordered feed steps: each step is a content block followed by an optional
   // check-question the learner must answer before the next step appears.
+  // Real-world action step: copy-ready prompt + link to the actual tool.
+  tryIt: jsonb("try_it").$type<{
+    tool: string;
+    url: string;
+    prompt: string;
+    note?: string;
+  }>(),
   steps: jsonb("steps").$type<
     {
       html: string;

@@ -1,0 +1,118 @@
+Design a premium audio lesson experience inspired by Duolingo, Coursera, and Audible. The player should feel modern, minimal, and distraction-free while remaining easy to use on mobile devices.
+
+Requirements:
+
+## Overall Experience
+- Full-screen lesson player.
+- Clean white background (light mode) with support for dark mode.
+- Large lesson title and module name at the top.
+- Display lesson progress (e.g., Lesson 3 of 20) and a progress bar.
+- Smooth animations when opening and closing the player.
+- Resume automatically from the last listening position.
+
+## Audio Player UI
+Create a professional audio player similar to Duolingo and Coursera with:
+
+- Large Play/Pause button centered.
+- Previous 10 seconds button.
+- Next 10 seconds button.
+- Seek/progress slider.
+- Current playback time.
+- Total audio duration.
+- Remaining time.
+- Animated waveform or subtle audio visualization while playing.
+- Playback speed selector.
+
+Supported playback speeds:
+- 0.5x
+- 0.75x
+- 1x (Default)
+- 1.25x
+- 1.5x
+- 1.75x
+- 2x
+
+## Reading Mode
+Provide two learning modes:
+
+1. Listen
+2. Read Along
+
+In Read Along mode:
+- Display the lesson transcript below the player.
+- Automatically highlight the current sentence as the audio plays.
+- Smoothly scroll the transcript to keep the active sentence visible.
+- Allow users to tap any sentence to jump the audio to that timestamp.
+- Completed sentences become green.
+- Current sentence is highlighted in blue.
+
+## Lesson Controls
+Include:
+- Bookmark lesson.
+- Download for offline listening.
+- Sleep timer.
+- Repeat current lesson.
+- Repeat selected section.
+- Skip intro.
+- Jump to chapter.
+- Continue where left off.
+
+## Chapter Navigation
+If the lesson contains multiple sections:
+- Display chapter markers on the progress bar.
+- Allow tapping a chapter to jump directly.
+- Show completed chapters with green indicators.
+
+## Completion Experience
+When the audio reaches the end:
+- Show a lesson completion animation.
+- Display a green checkmark.
+- Mark the lesson as completed.
+- Unlock the next lesson automatically.
+- Show a "Continue Learning" button.
+- Allow replay at any time.
+
+## Accessibility
+- Large touch targets.
+- VoiceOver/TalkBack support.
+- Keyboard shortcuts for web.
+- Adjustable text size.
+- High contrast mode.
+- Screen reader labels for every control.
+
+## Smart Features
+- Automatically save playback position.
+- Continue playback after app restart.
+- Background audio support.
+- Lock-screen media controls.
+- Bluetooth headset controls.
+- Handle incoming phone calls gracefully.
+- Offline playback for downloaded lessons.
+- Buffering indicator during network delays.
+
+## Micro Interactions
+- Smooth button animations.
+- Ripple effects on tap.
+- Progress bar updates in real time.
+- Gentle transition when changing playback speed.
+- Animated waveform while audio is playing.
+- Haptic feedback on supported devices.
+
+## Visual Style
+Inspired by:
+- Duolingo
+- Coursera
+- Spotify
+- Audible
+
+Use:
+- Rounded cards (16–20px radius)
+- Soft shadows
+- Minimal UI
+- Material Design 3
+- Premium typography
+- Calm blue accent color
+- Green completion color
+- Clean spacing with generous padding
+
+The overall experience should feel polished, modern, responsive, and premium, matching the quality of leading language-learning and online education apps.

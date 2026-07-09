@@ -1,0 +1,281 @@
+Implement a premium lesson player experience similar to Duolingo, Coursera, Babbel, and Audible.
+
+The lesson consists of multiple cards/pages.
+
+Each page contains:
+- Illustration
+- Lesson text
+- Optional interaction
+- Audio narration
+
+The audio narration must be fully synchronized with the lesson content.
+
+------------------------------------
+
+PAGE LOADING
+
+When a lesson page opens:
+
+• Automatically load the page audio.
+• Begin playback automatically.
+• Highlight the current sentence while it is being spoken.
+• Auto-scroll the content if needed.
+• Disable the Continue button while narration is still playing.
+• Display the remaining audio time.
+
+------------------------------------
+
+TRANSCRIPT SYNCHRONIZATION
+
+Split the lesson text into sentences.
+
+Each sentence should have:
+
+{
+    id,
+    text,
+    startTime,
+    endTime
+}
+
+Example
+
+Sentence 1
+0.0s → 3.2s
+
+Sentence 2
+3.2s → 7.5s
+
+Sentence 3
+7.5s → 11.1s
+
+While audio plays:
+
+• Highlight the active sentence.
+• Fade previous sentence.
+• Scroll to keep the active sentence visible.
+• Animate the highlight smoothly.
+
+If the user seeks the audio,
+update the highlighted sentence immediately.
+
+------------------------------------
+
+WHEN AUDIO FINISHES
+
+When playback reaches the final timestamp:
+
+Immediately:
+
+• Stop playback.
+• Set player state to Finished.
+• Show a green check animation.
+• Save lesson progress.
+• Mark page complete.
+• Unlock Continue button.
+
+Do NOT loop audio.
+
+Do NOT continue playing silence.
+
+Do NOT require the user to manually pause.
+
+------------------------------------
+
+CONTINUE BUTTON
+
+The Continue button should have three states.
+
+State 1
+
+Disabled
+
+While narration is playing.
+
+Text:
+
+Listening...
+
+State 2
+
+Enabled
+
+Immediately after narration ends.
+
+Text:
+
+Continue →
+
+Primary color.
+
+State 3
+
+Loading
+
+After user taps Continue.
+
+Show loading animation.
+
+Open next lesson card.
+
+------------------------------------
+
+AUTO ADVANCE (OPTIONAL)
+
+Provide a setting:
+
+Auto Continue
+
+ON / OFF
+
+If ON
+
+After narration ends
+
+Wait 2 seconds
+
+Automatically navigate to the next page.
+
+If OFF
+
+Simply enable Continue.
+
+This should be configurable.
+
+------------------------------------
+
+USER INTERRUPTS AUDIO
+
+If user presses Pause
+
+Pause narration.
+
+Pause transcript highlighting.
+
+Enable Resume.
+
+Continue button remains disabled.
+
+If user presses Play again
+
+Resume exactly where playback stopped.
+
+------------------------------------
+
+PLAYBACK CONTROLS
+
+Support
+
+Play
+
+Pause
+
+Seek
+
+Forward 10 seconds
+
+Back 10 seconds
+
+Playback speed
+
+0.5x
+
+0.75x
+
+1x
+
+1.25x
+
+1.5x
+
+1.75x
+
+2x
+
+Changing playback speed must keep transcript synchronization accurate.
+
+------------------------------------
+
+READ MODE
+
+If the user chooses Read Only mode
+
+Do NOT autoplay audio.
+
+Continue button is immediately enabled.
+
+Transcript remains visible.
+
+------------------------------------
+
+LISTEN MODE
+
+If the user chooses Listen mode
+
+Autoplay narration.
+
+Highlight transcript.
+
+Continue unlocks only after narration completes.
+
+------------------------------------
+
+PAGE COMPLETION
+
+A page is considered complete only when:
+
+✓ Narration reaches the end
+
+OR
+
+✓ User manually skips using a Skip Lesson button
+
+Seeking to the end should NOT automatically mark the lesson complete unless at least 90% of the audio has been played.
+
+------------------------------------
+
+PROGRESS
+
+After completion
+
+Update
+
+Lesson progress
+
+Module progress
+
+Course progress
+
+Dashboard progress
+
+Save automatically.
+
+------------------------------------
+
+MICRO ANIMATIONS
+
+When narration completes:
+
+Animate progress bar to 100%
+
+Show green check icon
+
+Pulse Continue button
+
+Small success animation
+
+No confetti until the entire lesson/module is complete.
+
+------------------------------------
+
+USER EXPERIENCE
+
+The player should feel identical to premium learning apps such as:
+
+• Duolingo
+• Coursera
+• Babbel
+• Audible
+• Khan Academy
+
+There should never be a situation where the audio finishes but continues running silently or requires the learner to manually stop playback. The lesson should automatically transition into a completed state, enabling the learner to continue seamlessly.

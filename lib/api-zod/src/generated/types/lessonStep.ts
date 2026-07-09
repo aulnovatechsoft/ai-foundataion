@@ -5,9 +5,12 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ChatTurn } from './chatTurn';
 import type { LessonQuestion } from './lessonQuestion';
 
 export interface LessonStep {
   html: string;
   question?: LessonQuestion | null;
+  /** Optional interactive chat session — a scripted conversation the learner completes turn by turn. */
+  chat?: ChatTurn[] | null;
 }
