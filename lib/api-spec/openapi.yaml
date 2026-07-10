@@ -1831,6 +1831,10 @@ components:
           type: string
         accent:
           type: string
+        category:
+          type: string
+          enum: [tool, use-case]
+          description: Dashboard grouping — AI Tool Mastery vs AI Use Cases.
         sortOrder:
           type: integer
         lessonCount:
@@ -1847,6 +1851,7 @@ components:
         - icon
         - color
         - accent
+        - category
         - sortOrder
         - lessonCount
         - completedCount

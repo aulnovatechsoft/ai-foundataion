@@ -336,6 +336,7 @@ export const ListCoursesResponseItem = zod.object({
   "icon": zod.string(),
   "color": zod.string(),
   "accent": zod.string(),
+  "category": zod.enum(['tool', 'use-case']).describe('Dashboard grouping — AI Tool Mastery vs AI Use Cases.'),
   "sortOrder": zod.number(),
   "lessonCount": zod.number(),
   "completedCount": zod.number().describe('Lessons the current user has completed in this course.')
@@ -359,6 +360,7 @@ export const GetCourseResponse = zod.object({
   "icon": zod.string(),
   "color": zod.string(),
   "accent": zod.string(),
+  "category": zod.enum(['tool', 'use-case']).describe('Dashboard grouping — AI Tool Mastery vs AI Use Cases.'),
   "sortOrder": zod.number(),
   "lessonCount": zod.number(),
   "completedCount": zod.number().describe('Lessons the current user has completed in this course.')

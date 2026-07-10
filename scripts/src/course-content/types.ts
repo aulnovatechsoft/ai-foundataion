@@ -73,6 +73,8 @@ export interface CourseSeed {
   icon: string;
   color: string;
   accent: string;
+  /** Dashboard grouping: "tool" (AI Tool Mastery) or "use-case" (AI Use Cases). */
+  category?: "tool" | "use-case";
   sortOrder: number;
   units: UnitSeed[];
 }

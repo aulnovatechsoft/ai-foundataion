@@ -462,6 +462,17 @@ export interface ChatFeedback {
   source: ChatFeedbackSource;
 }
 
+/**
+ * Dashboard grouping — AI Tool Mastery vs AI Use Cases.
+ */
+export type CourseSummaryCategory = typeof CourseSummaryCategory[keyof typeof CourseSummaryCategory];
+
+
+export const CourseSummaryCategory = {
+  tool: 'tool',
+  'use-case': 'use-case',
+} as const;
+
 export interface CourseSummary {
   id: number;
   slug: string;
@@ -471,6 +482,8 @@ export interface CourseSummary {
   icon: string;
   color: string;
   accent: string;
+  /** Dashboard grouping — AI Tool Mastery vs AI Use Cases. */
+  category: CourseSummaryCategory;
   sortOrder: number;
   lessonCount: number;
   /** Lessons the current user has completed in this course. */

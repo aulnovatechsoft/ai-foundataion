@@ -24,6 +24,7 @@ export * from './completeLessonResult';
 export * from './courseDetail';
 export * from './courseLessonDetail';
 export * from './courseSummary';
+export * from './courseSummaryCategory';
 export * from './courseUnitDetail';
 export * from './curriculumDayDetail';
 export * from './curriculumDayDetailNodeType';

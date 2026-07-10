@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CourseSummaryCategory } from './courseSummaryCategory';
 
 export interface CourseSummary {
   id: number;
@@ -15,6 +16,8 @@ export interface CourseSummary {
   icon: string;
   color: string;
   accent: string;
+  /** Dashboard grouping — AI Tool Mastery vs AI Use Cases. */
+  category: CourseSummaryCategory;
   sortOrder: number;
   lessonCount: number;
   /** Lessons the current user has completed in this course. */
