@@ -4,7 +4,8 @@ import { Show } from "@clerk/react";
 import { 
   useGetMe, 
   useListCourses,
-  getListCoursesQueryKey
+  getListCoursesQueryKey,
+  type CourseSummary
 } from "@workspace/api-client-react";
 import { Sparkles, Trophy, Flame, Zap, ArrowRight, Play, CheckCircle2, MessageSquare, TerminalSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,39 @@ export default function DashboardPage() {
   );
 }
 
+function CourseCard({ course }: { course: CourseSummary }) {
+  const isCompleted = course.completedCount === course.lessonCount && course.lessonCount > 0;
+  const percent = Math.round((course.completedCount / course.lessonCount) * 100) || 0;
+  return (
+    <Link href={`/course/${course.slug}`}>
+      <div className="os-card p-5 h-full flex flex-col hover:-translate-y-1 transition-transform group cursor-pointer border border-[hsl(var(--border))] hover:border-[hsl(var(--accent))/0.5]">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0" style={{ backgroundColor: course.color }}>
+            {course.icon}
+          </div>
+          <div className="flex-1 pt-1">
+            <h4 className="font-bold text-lg leading-tight group-hover:text-[hsl(var(--accent))] transition-colors">{course.title}</h4>
+            <p className="text-xs text-[hsl(var(--text-muted))] mt-1 line-clamp-2">{course.tagline}</p>
+          </div>
+        </div>
+        <div className="mt-auto pt-4 border-t border-[hsl(var(--border))]">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="font-medium text-[hsl(var(--text-muted))]">{course.lessonCount} lessons</span>
+            {isCompleted ? (
+              <span className="font-bold text-emerald-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Mastered</span>
+            ) : (
+              <span className="font-bold" style={{ color: course.accent }}>{percent}% complete</span>
+            )}
+          </div>
+          <div className="h-1.5 rounded-full bg-[hsl(var(--surface-2))] overflow-hidden">
+            <div className="h-full rounded-full transition-all" style={{ width: `${percent}%`, backgroundColor: isCompleted ? '#10b981' : course.accent }}></div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function DashboardContent() {
   const { data: me, isLoading: meLoading } = useGetMe();
   const { data: courses, isLoading: coursesLoading } = useListCourses({ query: { queryKey: getListCoursesQueryKey() } });
@@ -40,6 +74,8 @@ function DashboardContent() {
   }
 
   const activeCourse = courses?.find(c => c.slug === me?.activeCourseSlug) || courses?.[0];
+  const toolCourses = courses?.filter(c => c.category !== "use-case" && c.id !== activeCourse?.id) ?? [];
+  const useCaseCourses = courses?.filter(c => c.category === "use-case" && c.id !== activeCourse?.id) ?? [];
 
   return (
     <div className="space-y-8 animate-slide-up pb-24 text-[hsl(var(--text))]">
@@ -111,44 +147,30 @@ function DashboardContent() {
             </div>
           )}
 
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold font-heading">AI Tool Mastery</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {courses?.filter(c => c.id !== activeCourse?.id).map(course => {
-              const isCompleted = course.completedCount === course.lessonCount && course.lessonCount > 0;
-              const percent = Math.round((course.completedCount / course.lessonCount) * 100) || 0;
-              return (
-                <Link key={course.id} href={`/course/${course.slug}`}>
-                  <div className="os-card p-5 h-full flex flex-col hover:-translate-y-1 transition-transform group cursor-pointer border border-[hsl(var(--border))] hover:border-[hsl(var(--accent))/0.5]">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0" style={{ backgroundColor: course.color }}>
-                        {course.icon}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <h4 className="font-bold text-lg leading-tight group-hover:text-[hsl(var(--accent))] transition-colors">{course.title}</h4>
-                        <p className="text-xs text-[hsl(var(--text-muted))] mt-1 line-clamp-2">{course.tagline}</p>
-                      </div>
-                    </div>
-                    <div className="mt-auto pt-4 border-t border-[hsl(var(--border))]">
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="font-medium text-[hsl(var(--text-muted))]">{course.lessonCount} lessons</span>
-                        {isCompleted ? (
-                          <span className="font-bold text-emerald-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Mastered</span>
-                        ) : (
-                          <span className="font-bold" style={{ color: course.accent }}>{percent}% complete</span>
-                        )}
-                      </div>
-                      <div className="h-1.5 rounded-full bg-[hsl(var(--surface-2))] overflow-hidden">
-                        <div className="h-full rounded-full transition-all" style={{ width: `${percent}%`, backgroundColor: isCompleted ? '#10b981' : course.accent }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+          {toolCourses.length > 0 && (
+            <>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold font-heading">AI Tool Mastery</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {toolCourses.map(course => <CourseCard key={course.id} course={course} />)}
+              </div>
+            </>
+          )}
+
+          {useCaseCourses.length > 0 && (
+            <>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold font-heading">AI Use Cases</h3>
+                  <p className="text-sm text-[hsl(var(--text-muted))] mt-1">Apply AI to real-life and business challenges.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {useCaseCourses.map(course => <CourseCard key={course.id} course={course} />)}
+              </div>
+            </>
+          )}
 
         </div>
 

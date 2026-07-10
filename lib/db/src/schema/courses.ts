@@ -16,6 +16,8 @@ export const courses = pgTable("courses", {
   icon: text("icon").notNull(), // emoji or icon key
   color: text("color").notNull(), // pastel card background
   accent: text("accent").notNull(), // strong accent (buttons, rings)
+  // Dashboard grouping: "tool" (AI Tool Mastery) or "use-case" (AI Use Cases).
+  category: text("category").notNull().default("tool"),
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
