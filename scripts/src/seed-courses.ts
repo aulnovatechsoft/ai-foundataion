@@ -13,6 +13,11 @@ import { AI_COPYWRITING_COURSE } from "./course-content/ai-copywriting";
 import { AI_DESIGN_COURSE } from "./course-content/ai-design";
 import { AI_PORTFOLIO_COURSE } from "./course-content/ai-portfolio";
 import { AI_REAL_ESTATE_COURSE } from "./course-content/ai-real-estate";
+import { AI_MARKETING_COURSE } from "./course-content/ai-marketing";
+import { AI_SALES_COURSE } from "./course-content/ai-sales";
+import { AI_SEO_COURSE } from "./course-content/ai-seo";
+import { AI_PERFORMANCE_MARKETING_COURSE } from "./course-content/ai-performance-marketing";
+import { AI_SOCIAL_INFLUENCE_COURSE } from "./course-content/ai-social-influence";
 import { CANVA_AI_COURSE } from "./course-content/canva-ai";
 import { CHATGPT_COURSE } from "./course-content/chatgpt";
 import { CHATGPT_DEEP_DIVE_COURSE } from "./course-content/chatgpt-deep-dive";
@@ -47,6 +52,11 @@ const ALL_COURSES: CourseSeed[] = [
   AI_DESIGN_COURSE,
   AI_PORTFOLIO_COURSE,
   AI_BUSINESS_OPS_COURSE,
+  AI_SALES_COURSE,
+  AI_MARKETING_COURSE,
+  AI_SEO_COURSE,
+  AI_PERFORMANCE_MARKETING_COURSE,
+  AI_SOCIAL_INFLUENCE_COURSE,
 ];
 
 async function seed() {

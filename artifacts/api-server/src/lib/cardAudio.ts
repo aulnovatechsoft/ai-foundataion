@@ -292,6 +292,37 @@ export async function ensureCardAudio(
     // Not cached — generate below
   }
 
+  // Fallback: the hash covers only the narration content (not the lesson id),
+  // so audio generated under a previous lesson id (e.g. after a re-seed
+  // changed ids) is still valid. Reuse any cached file with the same hash.
+  try {
+    const matches = (await fs.readdir(audioDir)).filter(
+      (f) => f.endsWith(`-${hash}.json`) && f.startsWith("card-"),
+    );
+    for (const match of matches) {
+      try {
+        const meta = JSON.parse(
+          await fs.readFile(path.join(audioDir, match), "utf-8"),
+        ) as CardAudioPayload;
+        if (!meta?.audioUrl || !Array.isArray(meta.sentences)) continue;
+        const matchMp3 = match.replace(/\.json$/, ".mp3");
+        await fs.access(path.join(audioDir, matchMp3));
+        // Re-link under the current lesson id so future lookups hit directly.
+        await fs.copyFile(path.join(audioDir, matchMp3), mp3Path);
+        const payload: CardAudioPayload = {
+          ...meta,
+          audioUrl: `/api/audio/${mp3Name}`,
+        };
+        await fs.writeFile(metaPath, JSON.stringify(payload));
+        return payload;
+      } catch {
+        // Corrupt/incomplete candidate — try the next one
+      }
+    }
+  } catch {
+    // Fallback lookup failed — generate below
+  }
+
   const key = `${lessonId}:${hash}`;
   const existing = inFlight.get(key);
   if (existing) return existing;
